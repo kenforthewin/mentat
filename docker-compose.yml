@@ -1,0 +1,20 @@
+version: '3'
+services:
+  app:
+    build: .
+    depends_on:
+      - db
+    ports:
+      - 4000:4000
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} 
+    volumes:
+      - $PWD:/app
+  db:
+    image: postgres:9
+    volumes:
+      - db_store:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+volumes:
+  db_store:
