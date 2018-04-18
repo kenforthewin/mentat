@@ -14,7 +14,7 @@
 import "phoenix_html"
 import App from './components/App'
 import '../node_modules/semantic-ui-css/semantic.min.css';
-// import socket from "./socket"
+import socket from "./socket"
 import React from 'react'
 import ReactDOM from 'react-dom'
 
