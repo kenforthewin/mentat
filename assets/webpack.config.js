@@ -10,11 +10,11 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        exclude: /(node_modules)/,
+        exclude: /(node_modules|deps)/,
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['env', 'react', "transform-object-rest-spread"],
+            presets: ['env', 'react', 'stage-2'],
             plugins: []
           }
         }
