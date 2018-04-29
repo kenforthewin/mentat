@@ -27,13 +27,10 @@ module.exports = {
         ]
       },
       {
-        test: /\.(png|svg|jpg|gif)$/,
-        use: [
-          'file-loader'
-        ]
+        test: /\.(woff|woff2|ttf|eot|svg)(\?v=[a-z0-9]\.[a-z0-9]\.[a-z0-9])?$/, use: ['url-loader?limit=100000']
       },
-      { 
-        test: /\.(woff|woff2|eot|ttf|otf)$/,
+      {
+        test: /\.(png|svg|jpg|gif)$/,
         use: [
           'file-loader'
         ]

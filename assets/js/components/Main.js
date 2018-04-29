@@ -8,6 +8,7 @@ import {
 import { ConnectedRouter as Router } from 'react-router-redux';
 import { Menu, Container } from 'semantic-ui-react';
 import App from './App';
+import Home from './Home';
 
 class Main extends Component {
   constructor() {
@@ -42,6 +43,10 @@ class Main extends Component {
             <Route
               exact
               path="/"
+              component={Home} />
+            <Route
+              exact
+              path="/t/:room"
               component={App} />
           </Container>
         </div>
