@@ -10,11 +10,15 @@ defmodule AppWeb.MessageView do
   end
 
   def render("message.json", %{message: message}) do
-    %{body: message.body, inserted_at: message.inserted_at, tags: render_many(message.tags, AppWeb.MessageView, "message_tag.json")}
+    %{id: message.id, body: message.body, inserted_at: message.inserted_at, tags: render_many(message.tags, AppWeb.MessageView, "message_tag.json"), user: render_one(message.user, AppWeb.MessageView, "message_user.json")}
   end
 
   def render("message_tag.json", tag) do
     %{name: tag.message.name}
+  end
+
+  def render("message_user.json", user) do
+    %{name: user.message.name, color: user.message.color}
   end
 
 end

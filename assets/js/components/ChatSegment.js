@@ -1,35 +1,49 @@
 import React, { Component } from 'react';
-import { Segment, Comment, Rail, Icon, Label} from 'semantic-ui-react'
+import { Segment, Comment, Rail, Icon, Label, Ref, Transition} from 'semantic-ui-react'
 import TimeAgo from 'react-timeago'
 import moment from 'moment'
 class ChatSegment extends Component {
   constructor(props) {
     super(props)
     this.segmentStyles = {
-      flex: '3 0 50%',
-      maxHeight: '95vh',
-      display: 'flex',
-      flexDirection: 'column',
-
+      overflowY: 'scroll',  
+      WebkitOverflowScrolling: 'touch',
+      height: '100%'
     }
     this.chatSegment = React.createRef();
+    this.renderMessage = this.renderMessage.bind(this);
+    this.handleScroll = this.handleScroll.bind(this);
+    this.loadingMessages = false;
+    this.lastMessageLoaded = false;
   }
 
-  componentDidUpdate() {
-    let node = this.chatSegment.current;
-    node.scrollTop = node.scrollHeight - node.clientHeight;
+  getSnapshotBeforeUpdate(prevProps, prevState) {
+    return this.chatSegment.scrollHeight;
   }
 
-  renderMessage(name, text, timestamp, tags, i=0, avatar='/images/matt.jpg') {
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (prevProps.messages !== this.props.messages) {
+      const node = this.chatSegment;
+      if (this.props.updateType === 'append') {
+        node.scrollTop = node.scrollHeight - node.clientHeight;
+      }
+      else if (this.props.updateType === 'prepend') {
+        node.scrollTop = node.scrollHeight - snapshot;
+        this.loadingMessages = false;
+      }
+    }
+  }
+
+  renderMessage(color, name, text, timestamp, tags, i=0, avatar='/images/matt.jpg') {
     const labels = tags.map((t, i) => {
       return (
-        <Label size="mini" as='a' key={i}>{t}</Label>
+        <Label size="mini" as='a' key={i} onClick={this.props.onTagClick}>{t}</Label>
       )
     });
 
     return (
       <Comment key={i}>
-        <Comment.Avatar src={avatar} />
+        <Comment.Avatar style={{ backgroundColor: color, height: '2.5em'}}/>
         <Comment.Content>
           <Comment.Author as='a'>{name}</Comment.Author>
           <Comment.Metadata>
@@ -41,23 +55,42 @@ class ChatSegment extends Component {
       </Comment>
     );
   }
+  
+  handleRef = node => this.chatSegment = node
 
   renderMessages() {
     const messages = this.props.messages;
     return messages.map((message, i) => {
-      return this.renderMessage(message.name, message.text, message.timestamp, message.tags, i);
+      return this.renderMessage(message.color, message.name, message.text, message.timestamp, message.tags, i);
     });
+  }
+
+  handleScroll(e) {
+    const node = this.chatSegment;
+    if (!this.props.lastMessageLoaded && !this.loadingMessages && node.scrollTop === 0) {
+      this.loadingMessages = true;
+      this.props.loadMoreMessages(node);
+    }
+  }
+
+  scrollOnStart = () => {
+    this.chatSegment.scrollTop = this.chatSegment.scrollHeight - this.chatSegment.clientHeight;
   }
 
   render() {
     return (
-      <Segment raised style={this.segmentStyles}>
-        <div style={{ overflowY: 'scroll',  WebkitOverflowScrolling: 'touch', width: '100%', flex: 1}} ref={this.chatSegment} >
-          <Comment.Group style={{ maxWidth: '100%' }}>
-            {this.renderMessages()}
-          </Comment.Group>
-        </div>
-      </Segment>
+      <Ref innerRef={this.handleRef}>
+        <Segment raised style={this.segmentStyles} onScroll={this.handleScroll}>
+          <div style={{width: '100%'}}>
+            <Comment.Group style={{ maxWidth: '100%' }}>
+              {this.renderMessages()}
+            </Comment.Group>
+          </div>
+          <Transition visible={this.props.typingLabelVisible} animation='scale' onStart={this.scrollOnStart} duration={500}>
+            <Label size='mini' content={this.props.typingLabelContent}/>
+          </Transition>
+        </Segment>
+        </Ref>
     );
   }
 }

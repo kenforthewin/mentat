@@ -13,6 +13,8 @@
 // to also remove its path from "config.paths.watched".
 import "phoenix_html"
 import '../node_modules/semantic-ui-css/semantic.min.css';
+import '../node_modules/huebee/dist/huebee.css'
+import '../css/app.css';
 import React from 'react'
 import ReactDOM from 'react-dom'
 import Root from './components/Root'

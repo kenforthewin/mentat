@@ -3,7 +3,7 @@ defmodule AppWeb.UserSocket do
 
   ## Channels
   channel "room:*", AppWeb.RoomChannel
-
+  channel "user_room:*", AppWeb.RoomChannel
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket
   # transport :longpoll, Phoenix.Transports.LongPoll
@@ -19,8 +19,8 @@ defmodule AppWeb.UserSocket do
   #
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
-  def connect(_params, socket) do
-    {:ok, socket}
+  def connect(%{"uuid" => uuid}, socket) do
+    {:ok, assign(socket, :uuid, uuid)}
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
