@@ -28,7 +28,7 @@ export const generateGroupKeypair = () => {
     return (dispatch, getState) => {
       const options = {
         userIds: [{ name:'Example Example', email:'example@example.com' }],
-        numBits: 4096,
+        numBits: 2048,
         passphrase: ''
       };
     

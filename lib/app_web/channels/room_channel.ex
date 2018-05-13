@@ -46,7 +46,6 @@ defmodule AppWeb.RoomChannel do
     #### 2. tags.length > 0
     #### 3. Each tag has string length > 0
     user = Repo.one(from u in User, where: u.uuid == ^uuid)
-    broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team}
     team_id = 1
     # team_id = Repo.one(from t in Team, where: t.name == ^team, select: t.id) 
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
@@ -56,6 +55,7 @@ defmodule AppWeb.RoomChannel do
       end
     end)
     message = Repo.insert!(%Message{body: text, team_id: 1, user_id: user.id})
+    broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team, id: message.id}
     final_tags = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
     Enum.each(final_tags, fn(t) -> Repo.insert!(%MessageTag{message_id: message.id, tag_id: t.id}) end)
     {:noreply, socket}

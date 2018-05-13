@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Segment, Form, TextArea, Container, Comment, Button, Rail, Icon, Dropdown, Label, Header, Modal, Popup, Transition, Item } from 'semantic-ui-react'
+import { Segment, Form, TextArea, Container, Comment, Button, Rail, Icon, Dropdown, Label, Header, Modal, Popup, Transition, Item,Loader } from 'semantic-ui-react'
 import { Socket, Presence } from "phoenix"
 import moment from 'moment'
 import ChatSegment from './ChatSegment';
@@ -16,7 +16,9 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.typing = false;
-    this.state = { messages: [], tags: ['general'], tagOptions: ['general', 'random'], modalOpen: !this.props.userReducer.name || this.props.userReducer.name.length < 1, updateType: 'append', lastMessageLoaded: false, presences: {}, typing: [], requests: {} };
+    this.privKeyObj = null;
+    this.pubKeyObj = null;
+    this.state = { messages: [], tags: ['general'], tagOptions: ['general', 'random'], modalOpen: !this.props.userReducer.name || this.props.userReducer.name.length < 1, updateType: 'append', lastMessageLoaded: false, presences: {}, typing: [], requests: {}, messagesLoading: true };
 
     this.handleMessage = this.handleMessage.bind(this);
     this.initializeMessages = this.initializeMessages.bind(this);
@@ -70,17 +72,44 @@ class App extends Component {
 
     this.userChannel.on("more_messages", payload => {
       const messages = payload.messages.messages;
-
-      const newMessages = [
-        ...messages.reverse().map((m) => { return {id: m.id, name: m.user.name, color: m.user.color, text: m.body, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)} }),
-        ...this.state.messages
-      ]
+      this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.group.privateKey).keys[0];
+      let newMessages = [];
       this.setState({
         ...this.state,
-        messages: newMessages,
-        updateType: 'prepend',
-        lastMessageLoaded: messages.length === 0
+        messagesLoading: true
       })
+      messages.forEach((m, i) => {
+        const options = {
+          message: openpgp.message.readArmored(m.body),     // parse armored message
+          privateKeys: [this.privKeyObj]                            // for decryption
+        };
+        openpgp.decrypt(options).then((plaintext) => {
+          newMessages = [
+            {id: m.id, name: m.user.name, color: m.user.color, text: plaintext.data, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)},
+            ...newMessages
+          ];
+
+          if (i === messages.length - 1) {
+            this.setState({
+              ...this.state,
+              messages: [
+                ...newMessages,
+                ...this.state.messages
+              ],
+              updateType: 'prepend',
+              messagesLoading: false
+            })
+          }
+        });
+      });
+
+      if (messages.length < 1) {
+        this.setState({
+          ...this.state,
+          lastMessageLoaded: true
+        })
+      }
+
     })
 
     this.userChannel.join()
@@ -167,18 +196,18 @@ class App extends Component {
         postMessage = postMessage || this.state.tags.includes(t);
       });
       if (postMessage) {
-        const privKeyObj = openpgp.key.readArmored(this.props.cryptoReducer.group.privateKey).keys[0];
+       this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.group.privateKey).keys[0];
         const options = {
           message: openpgp.message.readArmored(payload.text),     // parse armored message
-          privateKeys: [privKeyObj]                            // for decryption
+          privateKeys: [this.privKeyObj]                            // for decryption
         };
         openpgp.decrypt(options).then((plaintext) => {
           const newMessage = { id: payload.id, name: payload.name, text: plaintext.data, color: payload.color, timestamp: moment().format(), tags: payload.tags }
+          console.log(newMessage)
           this.setState({
             ...this.state,
             tagOptions: tags,
-            messages: 
-            [
+            messages: [
               ...this.state.messages,
               newMessage
             ],
@@ -194,7 +223,7 @@ class App extends Component {
           ...this.state,
           lastMessageLoaded: false
         })
-        this.initializeMessages(payload.messages.messages.reverse());
+        this.initializeMessages(payload.messages.messages);
       }
     })
 
@@ -207,7 +236,7 @@ class App extends Component {
 
     this.channel.join()
       .receive("ok", resp => { 
-        this.initializeMessages(resp.messages.messages.reverse());
+        this.initializeMessages(resp.messages.messages);
         this.getTags(resp.tags.tags);
         this.props.updateName(resp.name, resp.color);
       }).receive("error", resp => { console.log("Unable to join", resp) });
@@ -225,10 +254,31 @@ class App extends Component {
   }
 
   initializeMessages(messages) {
-    this.setState({
-      ...this.state,
-      messages: messages.map((m) => { return {id: m.id, name: m.user.name, text: m.body, timestamp: m.inserted_at, color: m.user.color, tags: m.tags.map(t => t.name)} }),
-      updateType: 'append'
+    this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.group.privateKey).keys[0];
+    let newMessages = []
+    this.setState({...this.state, messagesLoading: true})
+    messages.forEach((m, i) => {
+      const options = {
+        message: openpgp.message.readArmored(m.body),     // parse armored message
+        privateKeys: [this.privKeyObj]                            // for decryption
+      };
+      openpgp.decrypt(options).then((plaintext) => {
+        newMessages = [
+        {id: m.id, name: m.user.name, color: m.user.color, text: plaintext.data, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)},
+          ...newMessages
+        ]
+        if (i === messages.length - 1) {
+          this.setState({
+            ...this.state,
+            messages: [
+              ...newMessages,
+              ...this.state.messages
+            ],
+            updateType: 'append',
+            messagesLoading: false
+          })
+        }
+      });
     });
   }
 
@@ -254,10 +304,12 @@ class App extends Component {
       this.channel.push("new_typing", {uuid: this.props.userReducer.uuid, typing: false});
 
       if(e.target.value.length > 0 && this.state.tags.length > 0) {
+        this.pubKeyObj = this.pubKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.group.publicKey).keys
         const message = e.target.value;
         const options = {
           data: message,
-          publicKeys: openpgp.key.readArmored(this.props.cryptoReducer.group.publicKey).keys
+          publicKeys: this.pubKeyObj,
+          armored: false
         };
         openpgp.encrypt(options).then((ciphertext) => {
           const encrypted = ciphertext.data;
@@ -432,6 +484,7 @@ class App extends Component {
     return (
       <div style={this.mainStyles}>
         {this.renderModal()}
+        <Loader active={this.state.messagesLoading} />
         <div style={{flex: 0, display: 'flex', minHeight: '2.71428571em', alignItems: 'center'}}>
             <Dropdown icon='users' size='large' style={{flex: 0, marginRight: '10px'}} direction='right'>
             <Dropdown.Menu>
