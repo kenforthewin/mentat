@@ -90,6 +90,28 @@ defmodule AppWeb.RoomChannel do
     {:noreply, socket}
   end
 
+  def handle_in("approve_request", %{"encryptedGroupPrivateKey" => encrypted_group_private_key, "uuid" => uuid, "groupPublicKey" => group_public_key}, socket) do
+    broadcast! socket, "approve_request", %{uuid: uuid, encrypted_group_private_key: encrypted_group_private_key, group_public_key: group_public_key}
+    {:noreply, socket}
+  end
+
+  def handle_in("new_claim_or_invite", %{"uuid" => uuid, "name" => name, "publicKey" => public_key}, socket) do
+    team_id = 1
+    team = Repo.one(from t in Team, where: t.id == ^team_id)
+    if (!team.claim_uuid) do
+      team = Ecto.Changeset.change(team, %{claim_uuid: uuid})
+      Repo.update!(team)
+      broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: true}
+    else
+      if team.claim_uuid == uuid do
+        broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: true}
+      else
+        broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: false, name: name, public_key: public_key}
+      end
+    end
+    {:noreply, socket}
+  end
+
   def handle_info(:after_join, socket) do
     push socket, "presence_state", Presence.list(socket)
     uuid = socket.assigns.uuid

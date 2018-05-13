@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Segment, Form, TextArea, Container, Comment, Button, Rail, Icon, Dropdown, Label, Header, Modal, Popup, Transition } from 'semantic-ui-react'
+import { Segment, Form, TextArea, Container, Comment, Button, Rail, Icon, Dropdown, Label, Header, Modal, Popup, Transition, Item } from 'semantic-ui-react'
 import { Socket, Presence } from "phoenix"
 import moment from 'moment'
 import ChatSegment from './ChatSegment';
@@ -9,14 +9,14 @@ import {updateName} from '../actions/userActions';
 import { Link } from 'react-router-dom';
 import ColorPicker from './ColorPicker';
 import Huebee from 'huebee';
-import openpgp from 'openpgp';
-import { generateKeypair } from '../actions/cryptoActions';
+let openpgp =  require('openpgp');
+import { generateKeypair, generateGroupKeypair, receiveGroupKeypair } from '../actions/cryptoActions';
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.typing = false;
-    this.state = { messages: [], tags: ['general'], tagOptions: ['general', 'random'], modalOpen: this.props.userReducer.name.length < 1, updateType: 'append', lastMessageLoaded: false, presences: {}, typing: [] };
+    this.state = { messages: [], tags: ['general'], tagOptions: ['general', 'random'], modalOpen: !this.props.userReducer.name || this.props.userReducer.name.length < 1, updateType: 'append', lastMessageLoaded: false, presences: {}, typing: [], requests: {} };
 
     this.handleMessage = this.handleMessage.bind(this);
     this.initializeMessages = this.initializeMessages.bind(this);
@@ -34,6 +34,8 @@ class App extends Component {
     this.typeTimeoutFn = this.typeTimeoutFn.bind(this);
     this.isTypingLabelVisible = this.isTypingLabelVisible.bind(this);
     this.typingLabelContent = this.typingLabelContent.bind(this);
+    this.requestClaimOrInvite = this.requestClaimOrInvite.bind(this);
+    this.approveRequest = this.approveRequest.bind(this);
 
     this.nameInput = React.createRef();
     this.colorInput = React.createRef();
@@ -53,6 +55,10 @@ class App extends Component {
       height: '100%',
       minHeight: '2.71428571em'
     }
+  }
+
+  requestClaimOrInvite() {
+    this.channel.push("new_claim_or_invite", {uuid: this.props.userReducer.uuid, name: this.props.userReducer.name, publicKey: this.props.cryptoReducer.publicKey});
   }
 
   componentDidMount() {
@@ -80,7 +86,10 @@ class App extends Component {
     this.userChannel.join()
       .receive("ok", resp => {
         if (!this.props.cryptoReducer.publicKey) {
-          this.props.generateKeypair();
+          this.props.generateKeypair(this.requestClaimOrInvite);
+        }
+        else if (!this.props.cryptoReducer.group.publicKey) {
+          this.requestClaimOrInvite();
         }
       })
       .receive("error", resp => {
@@ -100,6 +109,31 @@ class App extends Component {
         ...this.state,
         presences: Presence.syncDiff(this.state.presences, diff)
       });
+    });
+
+    this.channel.on("approve_request", payload => {
+      if (payload.uuid === this.props.userReducer.uuid && !this.props.cryptoReducer.group.publicKey) {
+        this.props.receiveGroupKeypair(payload.group_public_key, payload.encrypted_group_private_key);
+      }
+    });
+
+    this.channel.on("new_claim_or_invite", payload => {
+      if (payload.claimed && payload.uuid === this.props.userReducer.uuid) {
+        this.props.generateGroupKeypair()
+      } else if (!payload.claimed){
+        const newRequests = Object.keys(this.state.requests).includes(payload.uuid) ? this.state.requests : {
+          ...this.state.requests,
+          [payload.uuid]: {
+            uuid: payload.uuid,
+            name: payload.name,
+            publicKey: payload.public_key
+          }
+        }
+        this.setState({
+          ...this.state,
+          requests: newRequests
+        })
+      }
     });
 
     this.channel.on("new_typing", payload => {
@@ -125,22 +159,33 @@ class App extends Component {
     });
 
     this.channel.on("new_msg", payload => {
+      console.log(payload)
       let tags = this.state.tagOptions;
       let postMessage = false;
       payload.tags.forEach((t) => { 
         tags = tags.includes(t) ? tags : tags.concat([t]);
         postMessage = postMessage || this.state.tags.includes(t);
       });
-      const newMessages = postMessage ? [
-        ...this.state.messages,
-        { id: payload.id, name: payload.name, text: payload.text, color: payload.color, timestamp: moment().format(), tags: payload.tags }
-      ] : this.state.messages
-      this.setState({
-        ...this.state,
-        tagOptions: tags,
-        messages: newMessages,
-        updateType: 'append'
-      });
+      if (postMessage) {
+        const privKeyObj = openpgp.key.readArmored(this.props.cryptoReducer.group.privateKey).keys[0];
+        const options = {
+          message: openpgp.message.readArmored(payload.text),     // parse armored message
+          privateKeys: [privKeyObj]                            // for decryption
+        };
+        openpgp.decrypt(options).then((plaintext) => {
+          const newMessage = { id: payload.id, name: payload.name, text: plaintext.data, color: payload.color, timestamp: moment().format(), tags: payload.tags }
+          this.setState({
+            ...this.state,
+            tagOptions: tags,
+            messages: 
+            [
+              ...this.state.messages,
+              newMessage
+            ],
+            updateType: 'append'
+          });
+        });
+      }
     });
 
     this.channel.on("new_tags", payload => {
@@ -209,8 +254,16 @@ class App extends Component {
       this.channel.push("new_typing", {uuid: this.props.userReducer.uuid, typing: false});
 
       if(e.target.value.length > 0 && this.state.tags.length > 0) {
-        this.channel.push("new_msg", {text: e.target.value, uuid: this.props.userReducer.uuid, tags: this.state.tags, room: this.room});
-        e.target.value = null;
+        const message = e.target.value;
+        const options = {
+          data: message,
+          publicKeys: openpgp.key.readArmored(this.props.cryptoReducer.group.publicKey).keys
+        };
+        openpgp.encrypt(options).then((ciphertext) => {
+          const encrypted = ciphertext.data;
+          this.channel.push("new_msg", {text: encrypted, uuid: this.props.userReducer.uuid, tags: this.state.tags, room: this.room});
+        });
+        e.target.value = '';
       }
     } else if ((e.key === "Spacebar" || e.key === " ") && e.target.value && e.target.value[0] === '#') {
       e.preventDefault();
@@ -318,6 +371,37 @@ class App extends Component {
     })
   }
 
+  approveRequest(e) {
+    const data = e.target.dataset;
+
+    const options = {
+      data: this.props.cryptoReducer.group.privateKey,
+      publicKeys: openpgp.key.readArmored(data.publicKey).keys
+    };
+    openpgp.encrypt(options).then((ciphertext) => {
+      const encrypted = ciphertext.data;
+      this.channel.push("approve_request", { uuid: data.uuid, groupPublicKey: this.props.cryptoReducer.group.publicKey, encryptedGroupPrivateKey: encrypted})
+    });
+  }
+
+  renderRequests() {
+    const requests = this.state.requests;
+
+    return Object.values(requests).map((r, i) => {
+      return (
+        <Dropdown.Item key={i} >
+          <Form size='mini'>
+            <Form.Group inline >
+              <Item content={r.name} style={{ marginRight: '10px' }}/>
+              <Button size='mini' onClick={this.approveRequest} data-uuid={r.uuid} data-public-key={r.publicKey} compact>Yes</Button>
+              <Button size='mini' compact>No</Button>
+            </Form.Group>
+          </Form>
+        </Dropdown.Item>
+      );
+    });
+  }
+
   isTypingLabelVisible() {
     const thoseTyping = this.state.typing;
 
@@ -333,7 +417,18 @@ class App extends Component {
     return typingString;
   }
 
+  renderGate() {
+    return (
+      <Modal basic open={true} closeOnDimmerClick={false} size='small'>
+        <Header icon='user circle' content='You dont yet have access to this group.' />
+      </Modal>
+    )
+  }
+
   render() {
+    if (this.props.userReducer.name && this.props.userReducer.name.length > 1 && !this.props.cryptoReducer.group.publicKey) {
+      return this.renderGate();
+    }
     return (
       <div style={this.mainStyles}>
         {this.renderModal()}
@@ -343,6 +438,9 @@ class App extends Component {
               <Dropdown.Header content='Online Now' />
               <Dropdown.Divider />
               {this.renderOnlineUsers()}
+              <Dropdown.Header content='Requests' />
+              <Dropdown.Divider />
+              {this.renderRequests()}
             </Dropdown.Menu>
           </Dropdown>
           <Dropdown multiple search selection closeOnChange options={this.dropdownOptions()} placeholder='Select a tag' value={this.state.tags} style={{ flex: 1, marginRight: '10px' }} onChange={this.updateTags}/>
@@ -374,7 +472,9 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     updateName: (name, color) => dispatch(updateName(name, color)),
-    generateKeypair: () => dispatch(generateKeypair())
+    generateKeypair: (afterGenerateFn) => dispatch(generateKeypair(afterGenerateFn)),
+    generateGroupKeypair: () => dispatch(generateGroupKeypair()),
+    receiveGroupKeypair: (publicKey, encryptedPrivateKey) => dispatch(receiveGroupKeypair(publicKey, encryptedPrivateKey))
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(App);

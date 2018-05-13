@@ -1,7 +1,11 @@
 const INITIAL_STATE = {
   publicKey: null,
   privateKey: null,
-  passphrase: null
+  passphrase: null,
+  group: {
+    publicKey: null,
+    privateKey: null, 
+  }
 }
 
 export default (state = INITIAL_STATE, action) => {
@@ -12,6 +16,14 @@ export default (state = INITIAL_STATE, action) => {
         passphrase: action.passphrase,
         privateKey: action.privateKey,
         publicKey: action.publicKey
+      }
+    case 'new_group_key':
+      return {
+        ...state,
+        group: {
+          privateKey: action.privateKey,
+          publicKey: action.publicKey
+        }
       }
     default:
       return state;
