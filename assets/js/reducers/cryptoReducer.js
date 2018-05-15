@@ -2,9 +2,9 @@ const INITIAL_STATE = {
   publicKey: null,
   privateKey: null,
   passphrase: null,
-  group: {
-    publicKey: null,
-    privateKey: null, 
+  groups: {
+    // publicKey: null,
+    // privateKey: null, 
   }
 }
 
@@ -20,9 +20,12 @@ export default (state = INITIAL_STATE, action) => {
     case 'new_group_key':
       return {
         ...state,
-        group: {
-          privateKey: action.privateKey,
-          publicKey: action.publicKey
+        groups: {
+          ...state.groups,
+          [action.room]: {
+            privateKey: action.privateKey,
+            publicKey: action.publicKey
+          }
         }
       }
     default:

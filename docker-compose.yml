@@ -4,13 +4,8 @@ services:
     build: .
     depends_on:
       - db
-    ports:
-      - 4000:4000
-      - 8080:8080
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} 
-    volumes:
-      - $PWD:/app
   db:
     image: postgres:9
     volumes:

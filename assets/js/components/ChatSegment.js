@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Segment, Comment, Rail, Icon, Label, Ref, Transition, Dimmer, Loader} from 'semantic-ui-react'
+import { Segment, Comment, Rail, Icon, Label, Ref, Transition, Dimmer, Loader, Item} from 'semantic-ui-react'
 import TimeAgo from 'react-timeago'
 import moment from 'moment'
 class ChatSegment extends Component {
@@ -22,7 +22,7 @@ class ChatSegment extends Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (prevProps.messages !== this.props.messages) {
+    if ((prevProps.messages !== this.props.messages && this.props.messages.length > 0) || prevProps.typingLabelVisible !== this.props.typingLabelVisible) {
       const node = this.chatSegment;
       if (this.props.updateType === 'append') {
         node.scrollTop = node.scrollHeight - node.clientHeight;
@@ -67,7 +67,7 @@ class ChatSegment extends Component {
 
   handleScroll(e) {
     const node = this.chatSegment;
-    if (!this.props.lastMessageLoaded && !this.loadingMessages && node.scrollTop === 0) {
+    if (!this.props.lastMessageLoaded && !this.loadingMessages && node.scrollTop === 0 && this.props.messages.length > 0) {
       this.loadingMessages = true;
       this.props.loadMoreMessages(node);
     }
@@ -84,11 +84,10 @@ class ChatSegment extends Component {
           <div style={{width: '100%'}}>
             <Comment.Group style={{ maxWidth: '100%' }}>
               {this.renderMessages()}
+                          <div style={{ display: this.props.typingLabelVisible ? 'block' : 'none' }}>{this.props.typingLabelContent}</div>
+
             </Comment.Group>
           </div>
-          <Transition visible={this.props.typingLabelVisible} animation='scale' onStart={this.scrollOnStart} duration={500}>
-            <Label size='mini' content={this.props.typingLabelContent}/>
-          </Transition>
         </Segment>
         </Ref>
     );

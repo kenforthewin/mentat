@@ -1,12 +1,12 @@
 let openpgp =  require('openpgp');
 import randomWords from 'random-words';
 
-export const generateKeypair = (afterGenerateFn) => {
+export const generateKeypair = () => {
   return (dispatch, getState) => {
     const passphrase = randomWords({ exactly: 10, join: ' ' })
     const options = {
       userIds: [{ name:'Example Example', email:'example@example.com' }],
-      numBits: 4096,
+      numBits: 2048,
       passphrase: passphrase
     };
 
@@ -19,32 +19,32 @@ export const generateKeypair = (afterGenerateFn) => {
         privateKey,
         publicKey
       });
-      afterGenerateFn();
     });
   }
 }
 
-export const generateGroupKeypair = () => {
-    return (dispatch, getState) => {
-      const options = {
-        userIds: [{ name:'Example Example', email:'example@example.com' }],
-        numBits: 2048,
-        passphrase: ''
-      };
-    
-      openpgp.generateKey(options).then((key) => {
-        const privateKey = key.privateKeyArmored;
-        const publicKey = key.publicKeyArmored;
-        return dispatch({
-          type: 'new_group_key',
-          privateKey,
-          publicKey
-        });
+export const generateGroupKeypair = (room) => {
+  return (dispatch, getState) => {
+    const options = {
+      userIds: [{ name:'Example Example', email:'example@example.com' }],
+      numBits: 2048,
+      passphrase: ''
+    };
+  
+    openpgp.generateKey(options).then((key) => {
+      const privateKey = key.privateKeyArmored;
+      const publicKey = key.publicKeyArmored;
+      return dispatch({
+        type: 'new_group_key',
+        privateKey,
+        publicKey,
+        room
       });
-    }
+    });
+  }
 }
 
-export const receiveGroupKeypair = (publicKey, encryptedPrivateKey) => {
+export const receiveGroupKeypair = (room, publicKey, encryptedPrivateKey) => {
   return (dispatch, getState) => {
     const state = getState();
     var privKeyObj = openpgp.key.readArmored(state.cryptoReducer.privateKey).keys[0];
@@ -57,7 +57,8 @@ export const receiveGroupKeypair = (publicKey, encryptedPrivateKey) => {
         return dispatch({
           type: 'new_group_key',
           privateKey: plaintext.data,
-          publicKey
+          publicKey,
+          room
         });
       });
     });
