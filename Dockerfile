@@ -26,5 +26,5 @@ RUN mix compile --force
 RUN mix phx.digest
 RUN rm -rf deps/*/.fetch
 
-EXPOSE 80
+EXPOSE 4000
 ENTRYPOINT [ "./docker-entrypoint.sh" ]

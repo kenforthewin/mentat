@@ -5,7 +5,9 @@ services:
     depends_on:
       - db
     environment:
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} 
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - MIX_ENV=prod
+      - PORT=4000
   db:
     image: gcr.io/cloudsql-docker/gce-proxy:1.11
     environment:
