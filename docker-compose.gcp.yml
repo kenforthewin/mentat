@@ -11,9 +11,9 @@ services:
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-      $PWD/cloudsql:/cloudsql
-      $PWD/db-key.json:/config
-    cmd:
+      - $PWD/cloudsql:/cloudsql
+      - $PWD/db-key.json:/config
+    command:
       - /cloud_sql_proxy
       - -instances=react-rails-auth:us-central1:scalr=tcp:0.0.0.0:5432
       - -credential_file=/config
