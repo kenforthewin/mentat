@@ -8,6 +8,9 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - MIX_ENV=prod
       - PORT=4000
+      - LETSENCRYPT_HOST=${WEB_LETSENCRYPT_HOST}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      - VIRTUAL_HOST=${WEB_LETSENCRYPT_HOST}
   db:
     image: gcr.io/cloudsql-docker/gce-proxy:1.11
     environment:
