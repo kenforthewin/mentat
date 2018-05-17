@@ -304,10 +304,11 @@ class App extends Component {
     this.channel.push("new_typing", {uuid: this.props.userReducer.uuid, typing: false});
   }
 
-  pushNewTags(tags) {
+  pushNewTags(tags, tagOptions = this.state.tagOptions) {
     this.setState({
       ...this.state,
       tags,
+      tagOptions,
       messagesLoading: true
     }, () => {
       this.channel.push("new_tags", {tags: tags, room: this.room, uuid: this.props.userReducer.uuid});
@@ -356,12 +357,7 @@ class App extends Component {
         ...this.state.tagOptions,
         newTag
       ];
-      this.setState({
-        ...this.state,
-        tags: newTags,
-        tagOptions: newPossibleTags
-      });
-      this.pushNewTags(newTags);
+      this.pushNewTags(newTags, newPossibleTags);
     }
   }
 
