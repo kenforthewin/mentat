@@ -11,6 +11,7 @@ services:
       - LETSENCRYPT_HOST=${LETSENCRYPT_HOST}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
       - VIRTUAL_HOST=${VIRTUAL_HOST}
+      - FULL_HOST=${FULL_HOST}
   db:
     image: gcr.io/cloudsql-docker/gce-proxy:1.11
     environment:
