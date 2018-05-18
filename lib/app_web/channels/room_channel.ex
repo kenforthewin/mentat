@@ -53,7 +53,7 @@ defmodule AppWeb.RoomChannel do
     final_tags = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
     Enum.each(final_tags, fn(t) -> Repo.insert!(%MessageTag{message_id: message.id, tag_id: t.id}) end)
     {:noreply, socket}
-  end 
+  end
 
   def handle_in("new_tags", %{"room" => team, "tags" => tags, "uuid" => uuid}, socket) do
     team_id = socket.assigns.team_id
@@ -77,6 +77,7 @@ defmodule AppWeb.RoomChannel do
     user = Repo.one(from u in User, where: u.uuid == ^uuid)
     user = Ecto.Changeset.change(user, %{name: name, color: color})
     Repo.update!(user)
+    broadcast! socket, "new_name", %{ name: name, uuid: uuid, color: color }
     {:noreply, socket}
   end
 

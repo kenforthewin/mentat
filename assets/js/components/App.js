@@ -39,6 +39,7 @@ class App extends Component {
     this.requestClaimOrInvite = this.requestClaimOrInvite.bind(this);
     this.approveRequest = this.approveRequest.bind(this);
     this.pushNewTags = this.pushNewTags.bind(this);
+    this.dismissRequest = this.dismissRequest.bind(this);
 
     this.nameInput = React.createRef();
     this.colorInput = React.createRef();
@@ -117,7 +118,8 @@ class App extends Component {
       if (messages.length < 1) {
         this.setState({
           ...this.state,
-          lastMessageLoaded: true
+          lastMessageLoaded: true,
+          messagesLoading: false
         })
       }
 
@@ -154,6 +156,37 @@ class App extends Component {
       if (payload.uuid === this.props.userReducer.uuid && !this.props.cryptoReducer.groups[this.room]) {
         this.props.receiveGroupKeypair(this.room, payload.group_public_key, payload.encrypted_group_private_key);
       }
+      let {[payload.uuid]: _, ...filteredRequests} = this.state.requests;
+      this.setState({
+        ...this.state,
+        requests: filteredRequests
+      })
+    });
+
+    this.channel.on("new_name", payload => {
+      const oldMetas = this.state.presences[payload.uuid] ? this.state.presences[payload.uuid].metas : []
+      const newMetas = oldMetas.length > 0 ? [
+        {
+          ...oldMetas[0],
+          name: payload.name,
+          color: payload.color,
+        },
+        ...oldMetas.slice(1)
+      ] : [
+        {
+          name: payload.name,
+          color: payload.color,        
+        }
+      ]
+      this.setState({
+        ...this.state,
+        presences: {
+          ...this.state.presences,
+          [payload.uuid]: {
+            metas: newMetas
+          }
+        }
+      })
     });
 
     this.channel.on("new_claim_or_invite", payload => {
@@ -176,25 +209,22 @@ class App extends Component {
     });
 
     this.channel.on("new_typing", payload => {
-      const user = this.state.presences[payload.uuid];
-      if (!!user) {
-        const name = user.metas[0].name;
-        let newTyping;
 
-        if (payload.typing) {
-          newTyping = this.state.typing.includes(name) || this.props.userReducer.name === name ? this.state.typing : [
-            ...this.state.typing,
-            name
-          ]
-        } else {
-          newTyping = this.state.typing.filter(e => e !== name);
-        }
-        this.setState({
-          ...this.state,
-          updateType: 'append',
-          typing: newTyping
-        })
+      let newTyping;
+
+      if (payload.typing) {
+        newTyping = this.state.typing.includes(payload.uuid) || this.props.userReducer.uuid === payload.uuid ? this.state.typing : [
+          ...this.state.typing,
+          payload.uuid
+        ]
+      } else {
+        newTyping = this.state.typing.filter(e => e !== payload.uuid);
       }
+      this.setState({
+        ...this.state,
+        updateType: 'append',
+        typing: newTyping
+      })
     });
 
     this.channel.on("new_msg", payload => {
@@ -213,7 +243,6 @@ class App extends Component {
         };
         openpgp.decrypt(options).then((plaintext) => {
           const newMessage = { id: payload.id, name: payload.name, text: plaintext.data, color: payload.color, timestamp: moment().format(), tags: payload.tags }
-          console.log(newMessage)
           this.setState({
             ...this.state,
             tagOptions: tags,
@@ -277,14 +306,9 @@ class App extends Component {
           this.setState({
             ...this.state,
             messages: newMessages,
-            updateType: 'append'
+            updateType: 'append',
+            messagesLoading: false
           })
-
-          setTimeout(() => {
-            this.setState({
-              messagesLoading: false
-            })
-          }, 200)
         }
       });
     });
@@ -438,6 +462,7 @@ class App extends Component {
   }
 
   approveRequest(e) {
+    e.preventDefault();
     const data = e.target.dataset;
 
     const options = {
@@ -451,6 +476,16 @@ class App extends Component {
     });
   }
 
+  dismissRequest(e) {
+    e.preventDefault();
+    const data = e.target.dataset;
+    let {[data.uuid]: _, ...filteredRequests} = this.state.requests;
+    this.setState({
+      ...this.state,
+      requests: filteredRequests
+    })
+  }
+
   renderRequests() {
     const requests = this.state.requests;
 
@@ -461,7 +496,7 @@ class App extends Component {
             <Form.Group inline>
               <Item content={r.name} style={{ marginRight: '10px' }}/>
               <Button size='mini' onClick={this.approveRequest} data-uuid={r.uuid} data-public-key={r.publicKey} compact>Yes</Button>
-              <Button size='mini' compact>No</Button>
+              <Button size='mini' onClick={this.dismissRequest} data-uuid={r.uuid} compact>No</Button>
             </Form.Group>
           </Form>
         </Dropdown.Item>
@@ -479,7 +514,7 @@ class App extends Component {
     if (!this.isTypingLabelVisible()) {
       return '';
     }
-    const thoseTyping = this.state.typing;
+    const thoseTyping = this.state.typing.map(e => this.state.presences[e] ? this.state.presences[e].metas[0].name : 'no-name');
     const typingString = thoseTyping.join(' & ') + ' typing...'
     return typingString;
   }
