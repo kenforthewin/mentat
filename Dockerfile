@@ -11,17 +11,16 @@ RUN mix local.hex --force
 RUN mix local.rebar --force
 RUN export MIX_ENV=prod && mix do deps.get --force, deps.compile
 
-WORKDIR /app
-COPY ./ ./
 
-WORKDIR /app/assets
-RUN npm i
-RUN npm run build
+COPY ./assets/package* ./assets/
+RUN cd assets && npm i
+COPY ./assets ./assets/
+RUN cd assets && npm run build
 RUN mkdir -p /app/priv/static/js
 RUN cp /app/assets/node_modules/openpgp/dist/openpgp.worker.min.js /app/priv/static/js
 RUN cp /app/assets/node_modules/openpgp/dist/openpgp.min.js /app/priv/static/js
 
-WORKDIR /app
+COPY ./ ./
 RUN export MIX_ENV=prod && mix compile --force
 RUN export MIX_ENV=prod && mix phx.digest
 RUN rm -rf deps/*/.fetch

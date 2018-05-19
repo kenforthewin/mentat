@@ -40,6 +40,7 @@ class App extends Component {
     this.approveRequest = this.approveRequest.bind(this);
     this.pushNewTags = this.pushNewTags.bind(this);
     this.dismissRequest = this.dismissRequest.bind(this);
+    this.processTagFromInput = this.processTagFromInput.bind(this);
 
     this.nameInput = React.createRef();
     this.colorInput = React.createRef();
@@ -356,6 +357,9 @@ class App extends Component {
       this.channel.push("new_typing", {uuid: this.props.userReducer.uuid, typing: false});
 
       if(e.target.value.length > 0 && this.state.tags.length > 0) {
+        if (e.target.value[0] === '#' && !e.target.value.includes(" ")) {
+          return this.processTagFromInput(e);
+        }
         this.pubKeyObj = this.pubKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].publicKey).keys
         const message = e.target.value;
         const options = {
@@ -369,20 +373,34 @@ class App extends Component {
         });
         e.target.value = '';
       }
-    } else if ((e.key === "Spacebar" || e.key === " ") && e.target.value && e.target.value[0] === '#') {
-      e.preventDefault();
-      const newTag = e.target.value.slice(1);
-      e.target.value = null;
-      const newTags = this.state.tags.includes(newTag) ? this.state.tags : [
-        ...this.state.tags,
-        newTag
-      ];
-      const newPossibleTags = this.state.tagOptions.includes(newTag) ? this.state.tagOptions : [
+    } 
+    // else if ((e.key === "Spacebar" || e.key === " ") && e.target.value && e.target.value[0] === '#' && !e.target.value.includes("\w")) {
+    //   e.preventDefault();
+    //   this.processTagFromInput(e);
+    // }
+  }
+
+  processTagFromInput(e) {
+    if (e.target.value[1] === '#') {
+      const soleTag = e.target.value.slice(2);
+      const newPossibleTags = this.state.tagOptions.includes(soleTag) ? this.state.tagOptions : [
         ...this.state.tagOptions,
-        newTag
+        soleTag
       ];
-      this.pushNewTags(newTags, newPossibleTags);
+      e.target.value = null;
+      return this.pushNewTags([soleTag], newPossibleTags)
     }
+    const newTag = e.target.value.slice(1);
+    e.target.value = null;
+    const newTags = this.state.tags.includes(newTag) ? this.state.tags : [
+      ...this.state.tags,
+      newTag
+    ];
+    const newPossibleTags = this.state.tagOptions.includes(newTag) ? this.state.tagOptions : [
+      ...this.state.tagOptions,
+      newTag
+    ];
+    this.pushNewTags(newTags, newPossibleTags);
   }
 
   clickTag(e) {
