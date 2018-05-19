@@ -9,7 +9,7 @@ WORKDIR /app
 COPY ./mix* ./
 RUN mix local.hex --force
 RUN mix local.rebar --force
-RUN mix do deps.get --force, deps.compile
+RUN export MIX_ENV=prod && mix do deps.get --force, deps.compile
 
 WORKDIR /app
 COPY ./ ./
@@ -22,8 +22,8 @@ RUN cp /app/assets/node_modules/openpgp/dist/openpgp.worker.min.js /app/priv/sta
 RUN cp /app/assets/node_modules/openpgp/dist/openpgp.min.js /app/priv/static/js
 
 WORKDIR /app
-RUN mix compile --force
-RUN mix phx.digest
+RUN export MIX_ENV=prod && mix compile --force
+RUN export MIX_ENV=prod && mix phx.digest
 RUN rm -rf deps/*/.fetch
 
 EXPOSE 4000
