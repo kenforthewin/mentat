@@ -9,6 +9,7 @@ import {updateName} from '../actions/userActions';
 import { Link } from 'react-router-dom';
 import ColorPicker from './ColorPicker';
 import Huebee from 'huebee';
+import twitter from 'twitter-text';
 let openpgp =  require('openpgp');
 import { generateKeypair, generateGroupKeypair, receiveGroupKeypair } from '../actions/cryptoActions';
 
@@ -304,11 +305,13 @@ class App extends Component {
           ...newMessages
         ]
         if (i === messages.length - 1) {
+          console.log(JSON.stringify(newMessages))
           this.setState({
             ...this.state,
             messages: newMessages,
             updateType: 'append',
-            messagesLoading: false
+            messagesLoading: false,
+            lastMessageLoaded: false
           })
         }
       });
@@ -362,14 +365,22 @@ class App extends Component {
         }
         this.pubKeyObj = this.pubKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].publicKey).keys
         const message = e.target.value;
+        const extractedTags = twitter.extractHashtags(message);
         const options = {
           data: message,
           publicKeys: this.pubKeyObj,
           armored: false
         };
+        let allTags = this.state.tags;
+        extractedTags.forEach((extractedTag) => {
+          allTags = allTags.includes(extractedTag) ? allTags : [
+            ...allTags,
+            extractedTag
+          ]
+        })
         openpgp.encrypt(options).then((ciphertext) => {
           const encrypted = ciphertext.data;
-          this.channel.push("new_msg", {text: encrypted, uuid: this.props.userReducer.uuid, tags: this.state.tags, room: this.room});
+          this.channel.push("new_msg", {text: encrypted, uuid: this.props.userReducer.uuid, tags: allTags, room: this.room});
         });
         e.target.value = '';
       }

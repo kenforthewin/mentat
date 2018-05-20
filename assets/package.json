@@ -3,7 +3,13 @@
   "license": "MIT",
   "scripts": {
     "build": "webpack  --config webpack.config.prod.js --env.production",
-    "watch": "webpack --watch --progress --config webpack.config.js"
+    "watch": "webpack --watch --progress --config webpack.config.js",
+    "test": "jest"
+  },
+  "jest": {
+    "setupFiles": [
+      "jest-canvas-mock"
+    ]
   },
   "dependencies": {
     "huebee": "^2.0.0",
@@ -14,6 +20,7 @@
     "random-words": "^1.1.0",
     "react": "^16.3.1",
     "react-dom": "^16.3.1",
+    "react-linkify": "^0.2.2",
     "react-redux": "^5.0.7",
     "react-router-dom": "^4.2.2",
     "react-router-redux": "^5.0.0-alpha.9",
@@ -23,18 +30,26 @@
     "redux-thunk": "^2.2.0",
     "semantic-ui-css": "^2.3.1",
     "semantic-ui-react": "^0.79.1",
+    "twitter-text": "^2.0.4",
     "url-loader": "^1.0.1",
     "uuid": "^3.2.1"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",
+    "babel-jest": "^22.4.4",
     "babel-loader": "^7.1.4",
     "babel-preset-env": "^1.6.1",
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
     "css-loader": "^0.28.11",
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
     "file-loader": "^1.1.11",
+    "jest": "^22.4.4",
+    "jest-canvas-mock": "^1.0.2",
+    "react-test-renderer": "^16.3.2",
     "redux-devtools": "^3.4.1",
+    "redux-mock-store": "^1.5.1",
     "style-loader": "^0.20.3",
     "uglify-js-brunch": "2.10.0",
     "webpack": "^4.5.0",

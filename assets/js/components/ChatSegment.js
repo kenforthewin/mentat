@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { Segment, Comment, Rail, Icon, Label, Ref, Transition, Dimmer, Loader, Item} from 'semantic-ui-react'
 import TimeAgo from 'react-timeago'
 import moment from 'moment'
+import Linkify from 'react-linkify'
+
 class ChatSegment extends Component {
   constructor(props) {
     super(props)
@@ -50,7 +52,7 @@ class ChatSegment extends Component {
             <TimeAgo date={moment.utc(timestamp)} minPeriod={15}/>
             {labels}
           </Comment.Metadata>
-          <Comment.Text>{text}</Comment.Text>
+          <Comment.Text><Linkify>{text}</Linkify></Comment.Text>
         </Comment.Content>
       </Comment>
     );
@@ -84,8 +86,9 @@ class ChatSegment extends Component {
           <div style={{width: '100%'}}>
             <Comment.Group style={{ maxWidth: '100%' }}>
               {this.renderMessages()}
-                          <div style={{ display: this.props.typingLabelVisible ? 'block' : 'none' }}>{this.props.typingLabelContent}</div>
-
+              <div style={{ display: this.props.typingLabelVisible ? 'block' : 'none' }}>
+                {this.props.typingLabelContent}
+              </div>
             </Comment.Group>
           </div>
         </Segment>

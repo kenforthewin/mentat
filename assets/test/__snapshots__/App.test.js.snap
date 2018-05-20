@@ -1,0 +1,668 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`App Renders app 1`] = `null`;
+
+exports[`App Renders messages 1`] = `
+<div
+  className="ui raised segment"
+  onScroll={[Function]}
+  style={
+    Object {
+      "WebkitOverflowScrolling": "touch",
+      "height": "100%",
+      "overflowY": "scroll",
+    }
+  }
+>
+  <div
+    style={
+      Object {
+        "width": "100%",
+      }
+    }
+  >
+    <div
+      className="ui comments"
+      style={
+        Object {
+          "maxWidth": "100%",
+        }
+      }
+    >
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#6e8de2",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Base2
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-15T20:16:16.838Z"
+              title="2018-05-15 20:16"
+            >
+              5 days ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            test
+          </div>
+        </div>
+      </div>
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#6e8de2",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Base2
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-15T20:16:18.141Z"
+              title="2018-05-15 20:16"
+            >
+              5 days ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            test
+          </div>
+        </div>
+      </div>
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#6e8de2",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Base2
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-15T20:16:19.139Z"
+              title="2018-05-15 20:16"
+            >
+              5 days ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            test
+          </div>
+        </div>
+      </div>
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#6e8de2",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Base2
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-15T20:16:20.039Z"
+              title="2018-05-15 20:16"
+            >
+              5 days ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            test
+          </div>
+        </div>
+      </div>
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#6e8de2",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Base2
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-15T20:16:20.868Z"
+              title="2018-05-15 20:16"
+            >
+              5 days ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            test
+          </div>
+        </div>
+      </div>
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#6e8de2",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Base2
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-15T20:16:21.655Z"
+              title="2018-05-15 20:16"
+            >
+              5 days ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            test
+          </div>
+        </div>
+      </div>
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#C8A",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Regor
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-15T20:29:38.452Z"
+              title="2018-05-15 20:29"
+            >
+              5 days ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            hello
+          </div>
+        </div>
+      </div>
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#6e8de2",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Base2
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-17T14:03:00.416Z"
+              title="2018-05-17 14:03"
+            >
+              3 days ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              bla
+            </a>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              new_channel
+            </a>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              new_tag
+            </a>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            push
+          </div>
+        </div>
+      </div>
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#6e8de2",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Base2
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-17T14:07:58.996Z"
+              title="2018-05-17 14:07"
+            >
+              3 days ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              allo
+            </a>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            push
+          </div>
+        </div>
+      </div>
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#d2ec80",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Jimbob
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-18T19:54:20.075Z"
+              title="2018-05-18 19:54"
+            >
+              2 days ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            Yo
+          </div>
+        </div>
+      </div>
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#d2ec80",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Jimbob
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-18T19:55:37.684Z"
+              title="2018-05-18 19:55"
+            >
+              2 days ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            okay now
+          </div>
+        </div>
+      </div>
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#6e8de2",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Base2
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-19T18:10:12.277Z"
+              title="2018-05-19 18:10"
+            >
+              1 day ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            Okay message in general
+          </div>
+        </div>
+      </div>
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#6e8de2",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Base2
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-19T18:12:00.780Z"
+              title="2018-05-19 18:12"
+            >
+              1 day ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            ##whaa a a
+          </div>
+        </div>
+      </div>
+      <div
+        className="comment"
+      >
+        <div
+          className="avatar"
+          style={
+            Object {
+              "backgroundColor": "#6e8de2",
+              "height": "2.5em",
+            }
+          }
+        />
+        <div
+          className="content"
+        >
+          <a
+            className="author"
+          >
+            Base2
+          </a>
+          <div
+            className="metadata"
+          >
+            <time
+              dateTime="2018-05-19T18:14:48.607Z"
+              title="2018-05-19 18:14"
+            >
+              1 day ago
+            </time>
+            <a
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              general
+            </a>
+          </div>
+          <div
+            className="text"
+          >
+            #tag for your face
+          </div>
+        </div>
+      </div>
+      <div
+        style={
+          Object {
+            "display": "none",
+          }
+        }
+      />
+    </div>
+  </div>
+</div>
+`;
