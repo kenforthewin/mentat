@@ -3,13 +3,16 @@ import { Segment, Form, TextArea, Container, Comment, Button, Rail, Icon, Dropdo
 import { Socket, Presence } from "phoenix"
 import moment from 'moment'
 import ChatSegment from './ChatSegment';
-import SidebarLeftOverlay from './SidebarLeftOverlay';
 import { connect } from 'react-redux';
 import {updateName} from '../actions/userActions';
 import { Link } from 'react-router-dom';
-import ColorPicker from './ColorPicker';
 import Huebee from 'huebee';
 import twitter from 'twitter-text';
+import OnlineUsersDropdown from './OnlineUsersDropdown';
+import MainMenuDropdown from './MainMenuDropdown';
+import TagsDropdown from './TagsDropdown';
+import MessageForm from './MessageForm';
+import UserModal from './UserModal';
 let openpgp =  require('openpgp');
 import { generateKeypair, generateGroupKeypair, receiveGroupKeypair } from '../actions/cryptoActions';
 
@@ -30,10 +33,8 @@ class App extends Component {
     this.getTags = this.getTags.bind(this);
     this.clickTag = this.clickTag.bind(this);
     this.room = props.match.params.room
-    this.renderModal = this.renderModal.bind(this);
     this.onModalClose = this.onModalClose.bind(this);
     this.loadMoreMessages = this.loadMoreMessages.bind(this);
-    this.renderOnlineUsers = this.renderOnlineUsers.bind(this);
     this.typeTimeoutFn = this.typeTimeoutFn.bind(this);
     this.isTypingLabelVisible = this.isTypingLabelVisible.bind(this);
     this.typingLabelContent = this.typingLabelContent.bind(this);
@@ -52,14 +53,6 @@ class App extends Component {
       display: 'flex',
       flexDirection: 'column',
       height: '100%'
-    }
-    this.formStyles = {
-      flex: '0',
-      marginBottom: '30px',
-      // display: 'flex', 
-      // alignItems: 'center',
-      height: '100%',
-      minHeight: '2.71428571em'
     }
   }
 
@@ -230,7 +223,6 @@ class App extends Component {
     });
 
     this.channel.on("new_msg", payload => {
-      console.log(payload)
       let tags = this.state.tagOptions;
       let postMessage = false;
       payload.tags.forEach((t) => { 
@@ -282,6 +274,7 @@ class App extends Component {
   }
 
   componentWillUnmount() {
+    this.channel.leave();
   }
 
   getTags(tags) {
@@ -305,7 +298,6 @@ class App extends Component {
           ...newMessages
         ]
         if (i === messages.length - 1) {
-          console.log(JSON.stringify(newMessages))
           this.setState({
             ...this.state,
             messages: newMessages,
@@ -458,38 +450,6 @@ class App extends Component {
     this.userChannel.push("more_messages", {id, tags: this.state.tags, room: this.room});
   }
 
-  renderModal() {
-    return (
-      <Modal basic open={this.state.modalOpen} closeOnDimmerClick={false} size='small'>
-        <Header icon='user circle' content='Set name and preferred color' />
-        <Modal.Content>
-          <Form>
-            <Form.Field>
-              <input placeholder='Username' defaultValue={this.props.userReducer.name} ref={this.nameInput}/>
-            </Form.Field>
-            <ColorPicker color={this.props.userReducer.color} inputRef={this.colorInput}/>
-          </Form>
-        </Modal.Content>
-        <Modal.Actions>
-          <Button color='green' onClick={this.onModalClose} inverted>
-            <Icon name='checkmark' /> Accept
-          </Button>
-        </Modal.Actions>
-      </Modal>
-    );
-  }
-
-  renderOnlineUsers() {
-    const users = this.state.presences;
-
-    return Object.values(users).map((u, i) => {
-      const metas = u.metas[0]
-      return (
-        <Dropdown.Item label={{ empty: true, circular: true, style: {backgroundColor: metas.color} }} text={metas.name} key={i} />
-      )
-    })
-  }
-
   approveRequest(e) {
     e.preventDefault();
     const data = e.target.dataset;
@@ -513,24 +473,6 @@ class App extends Component {
       ...this.state,
       requests: filteredRequests
     })
-  }
-
-  renderRequests() {
-    const requests = this.state.requests;
-
-    return Object.values(requests).map((r, i) => {
-      return (
-        <Dropdown.Item key={i} >
-          <Form size='mini'>
-            <Form.Group inline>
-              <Item content={r.name} style={{ marginRight: '10px' }}/>
-              <Button size='mini' onClick={this.approveRequest} data-uuid={r.uuid} data-public-key={r.publicKey} compact>Yes</Button>
-              <Button size='mini' onClick={this.dismissRequest} data-uuid={r.uuid} compact>No</Button>
-            </Form.Group>
-          </Form>
-        </Dropdown.Item>
-      );
-    });
   }
 
   isTypingLabelVisible() {
@@ -573,41 +515,46 @@ class App extends Component {
     }
     return (
       <div style={this.mainStyles}>
-        {this.renderModal()}
+        <UserModal
+            modalOpen={this.state.modalOpen}
+            name={this.props.userReducer.name}
+            colorInput={this.colorInput}
+            nameInput={this.nameInput}
+            color={this.props.userReducer.color}
+            onModalClose={this.onModalClose} />
         <Loader active={this.state.messagesLoading} />
         <div style={{flex: 0, display: 'flex', minHeight: '2.71428571em', alignItems: 'center'}}>
-            <Dropdown icon='users' size='large' style={{flex: 0, marginRight: '10px'}} direction='right'>
-              <Dropdown.Menu>
-                <Dropdown.Header content='Online Now' />
-                <Dropdown.Divider />
-                {this.renderOnlineUsers()}
-                <Dropdown.Header content='Requests' />
-                <Dropdown.Divider />
-                {this.renderRequests()}
-              </Dropdown.Menu>
-            </Dropdown>
-          <Dropdown multiple search selection closeOnChange options={this.dropdownOptions()} placeholder='Select a tag' value={this.state.tags} style={{ flex: 1, marginRight: '10px' }} onChange={this.updateTags}/>
-          <Dropdown icon='options' size='large' style={{flex: 0}} direction='left'>
-            <Dropdown.Menu>
-              <Dropdown.Item text='Change name' onClick={() => this.setState({...this.state, modalOpen: true})}/>
-              <Dropdown.Divider />
-              <Dropdown.Item text='Exit to main menu' as={Link} to='/' />
-            </Dropdown.Menu>
-          </Dropdown>
+          <OnlineUsersDropdown 
+              presences={this.state.presences} 
+              requests={this.state.requests} 
+              approveRequest={this.approveRequest} 
+              dismissRequest={this.dismissRequest} />
+          <TagsDropdown
+              tags={this.state.tags}
+              dropdownOptions={this.dropdownOptions}
+              updateTags={this.updateTags}
+          />
+          <MainMenuDropdown
+              changeName={() => this.setState({...this.state, modalOpen: true})} />
         </div>
-        <ChatSegment messages={this.state.messages} lastMessageLoaded={this.state.lastMessageLoaded} onTagClick={this.clickTag} style={{ flex: '1 0', height: '100%'}} loadMoreMessages={this.loadMoreMessages} updateType={this.state.updateType} typingLabelVisible={this.isTypingLabelVisible()} typingLabelContent={this.typingLabelContent()}/>
-
-        <Form style={this.formStyles}>
-
-          <TextArea rows={1} 
-            placeholder={this.textPlaceholder()} 
-            onKeyPress={this.handleMessage} 
-            disabled={this.areTagsEmpty()}
-            />
-        </Form>
+        <ChatSegment 
+            messages={this.state.messages} 
+            lastMessageLoaded={this.state.lastMessageLoaded} 
+            onTagClick={this.clickTag} 
+            style={{ flex: '1 0', height: '100%'}} 
+            loadMoreMessages={this.loadMoreMessages} 
+            updateType={this.state.updateType} 
+            typingLabelVisible={this.isTypingLabelVisible()} 
+            typingLabelContent={this.typingLabelContent()} />
+        <MessageForm
+            textPlaceholder={this.textPlaceholder}
+            handleMessage={this.handleMessage}
+            areTagsEmpty={this.areTagsEmpty} />
+        {/* <Picker /> */}
       </div> );
   }
 }
+
 const mapStateToProps = (state) => {
   const { userReducer, cryptoReducer } = state;
   return { userReducer, cryptoReducer };

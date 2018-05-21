@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
-import { Segment, Comment, Rail, Icon, Label, Ref, Transition, Dimmer, Loader, Item} from 'semantic-ui-react'
+import { Segment, Comment, Rail, Icon, Label, Ref, Transition, Dimmer, Loader, Item, Message} from 'semantic-ui-react'
 import TimeAgo from 'react-timeago'
 import moment from 'moment'
 import Linkify from 'react-linkify'
+import emoji from 'node-emoji';
+import RenderedMessage from './RenderedMessage';
 
 class ChatSegment extends Component {
   constructor(props) {
@@ -42,7 +44,7 @@ class ChatSegment extends Component {
         <Label size="mini" as='a' key={i} onClick={this.props.onTagClick}>{t}</Label>
       )
     });
-
+    const emojiText = emoji.emojify(text);
     return (
       <Comment key={i}>
         <Comment.Avatar style={{ backgroundColor: color, height: '2.5em'}}/>
@@ -52,7 +54,7 @@ class ChatSegment extends Component {
             <TimeAgo date={moment.utc(timestamp)} minPeriod={15}/>
             {labels}
           </Comment.Metadata>
-          <Comment.Text><Linkify>{text}</Linkify></Comment.Text>
+          <Comment.Text><Linkify>{emojiText}</Linkify></Comment.Text>
         </Comment.Content>
       </Comment>
     );
@@ -63,7 +65,16 @@ class ChatSegment extends Component {
   renderMessages() {
     const messages = this.props.messages;
     return messages.map((message, i) => {
-      return this.renderMessage(message.color, message.name, message.text, message.timestamp, message.tags, i);
+      return (
+        <RenderedMessage
+            color={message.color}
+            name={message.name}
+            text={message.text}
+            timestamp={message.timestamp}
+            tags={message.tags}
+            key={i}
+            onTagClick={this.props.onTagClick} />
+      )
     });
   }
 
