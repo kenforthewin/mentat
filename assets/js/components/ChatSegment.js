@@ -72,8 +72,11 @@ class ChatSegment extends Component {
             text={message.text}
             timestamp={message.timestamp}
             tags={message.tags}
+            id={message.id}
             key={i}
-            onTagClick={this.props.onTagClick} />
+            onTagClick={this.props.onTagClick} 
+            handleNewTagOnMessage={this.props.handleNewTagOnMessage}
+            />
       )
     });
   }

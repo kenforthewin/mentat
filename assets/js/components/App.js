@@ -43,6 +43,7 @@ class App extends Component {
     this.pushNewTags = this.pushNewTags.bind(this);
     this.dismissRequest = this.dismissRequest.bind(this);
     this.processTagFromInput = this.processTagFromInput.bind(this);
+    this.handleNewTagOnMessage = this.handleNewTagOnMessage.bind(this);
 
     this.nameInput = React.createRef();
     this.colorInput = React.createRef();
@@ -253,6 +254,23 @@ class App extends Component {
     this.channel.on("new_tags", payload => {
       if(this.props.userReducer.uuid === payload.uuid) {
         this.initializeMessages(payload.messages.messages);
+      }
+    })
+    this.channel.on("new_message_tag", payload => {
+      const messageIndex = this.state.messages.findIndex(e => e.id === payload.id);
+      if(messageIndex !== -1) {
+        let messages = this.state.messages;
+        messages[messageIndex] = {
+          ...messages[messageIndex],
+          tags: [
+            ...messages[messageIndex].tags,
+            payload.new_tag
+          ]
+        }
+        this.setState({
+          ...this.state,
+          messages
+        })
       }
     })
 
@@ -498,6 +516,16 @@ class App extends Component {
     )
   }
 
+  handleNewTagOnMessage(e, id) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      console.log(e);
+      const newTag = e.target.value;
+      this.channel.push("new_message_tag", {id, newTag})
+      e.target.value = '';
+    }
+  }
+
   renderLoadingKey() {
     return (
       <Modal basic open={true} closeOnDimmerClick={false} size='small'>
@@ -545,7 +573,10 @@ class App extends Component {
             loadMoreMessages={this.loadMoreMessages} 
             updateType={this.state.updateType} 
             typingLabelVisible={this.isTypingLabelVisible()} 
-            typingLabelContent={this.typingLabelContent()} />
+            typingLabelContent={this.typingLabelContent()} 
+            handleNewTagOnMessage={this.handleNewTagOnMessage}
+            />
+            
         <MessageForm
             textPlaceholder={this.textPlaceholder}
             handleMessage={this.handleMessage}

@@ -24,10 +24,10 @@ export default class MessageForm extends Component {
     }
   }
   maybeRenderPicker() {
-    if (!this.state.pickerVisible) return;
+    // if (!this.state.pickerVisible) return;
 
     return (
-      <Picker style={{position: 'absolute', bottom: '0px', right: '30px'}} onSelect={this.addEmoji}/>
+      <Picker style={{display: this.state.pickerVisible ? 'block' : 'none', zIndex: 9999, position: 'absolute', bottom: '0px', right: '30px'}} onClick={this.addEmoji} />
     );
   }
 

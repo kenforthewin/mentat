@@ -72,6 +72,22 @@ defmodule AppWeb.RoomChannel do
     broadcast! socket, "get_tags", rendered_tags
     {:noreply, socket}
   end
+  def handle_in("new_message_tag", %{"id" => id, "newTag" => new_tag}, socket) do
+    team_id = socket.assigns.team_id
+    tag = Repo.one(from t in Tag, where: t.team_id == ^team_id and t.name == ^new_tag)
+    if !tag do
+      tag = Repo.insert!(%Tag{team_id: team_id, name: new_tag})
+      Repo.insert!(%MessageTag{message_id: id, tag_id: tag.id})
+      broadcast! socket, "new_message_tag", %{id: id, new_tag: new_tag}
+    else
+      message_tag = Repo.one(from t in MessageTag, where: t.tag_id == ^tag.id and t.message_id == ^id)
+      if !message_tag do
+        Repo.insert!(%MessageTag{message_id: id, tag_id: tag.id})
+        broadcast! socket, "new_message_tag", %{id: id, new_tag: new_tag}
+      end
+    end
+    {:noreply, socket}
+  end
 
   def handle_in("new_name", %{"uuid" => uuid, "name" => name, "color" => color}, socket) do
     user = Repo.one(from u in User, where: u.uuid == ^uuid)

@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Comment, Label} from 'semantic-ui-react'
+import {Comment, Label, Dropdown, Input} from 'semantic-ui-react'
 import { Link } from 'react-router-dom';
 import emoji from 'node-emoji';
 import Linkify from 'react-linkify'
@@ -13,11 +13,13 @@ export default class RenderedMessage extends Component {
   }
 
   render() {
-    const labels = this.props.tags.map((t, i) => {
+    let labels = this.props.tags.map((t, i) => {
       return (
         <Label size="mini" as='a' key={i} onClick={this.props.onTagClick}>{t}</Label>
       )
     });
+    labels[labels.length] = <Label key={labels.length + 1} size='mini'><Input className='newTagInput' onKeyPress={(e) => this.props.handleNewTagOnMessage(e, this.props.id)} transparent placeholder='+'/></Label>
+
     const emojiText = emoji.emojify(this.props.text);
     return (
       <Comment>
@@ -28,7 +30,7 @@ export default class RenderedMessage extends Component {
             <TimeAgo date={moment.utc(this.props.timestamp)} minPeriod={15}/>
             {labels}
           </Comment.Metadata>
-          <Comment.Text><Linkify>{emojiText}</Linkify></Comment.Text>
+          <Comment.Text style={{fontSize: '16px'}}><Linkify>{emojiText}</Linkify></Comment.Text>
         </Comment.Content>
       </Comment>
     );

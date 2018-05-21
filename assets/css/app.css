@@ -4,3 +4,13 @@
   position: relative;
   top: 20%;
 }
+
+.newTagInput input {
+  width: 8px;
+  -webkit-transition: width 2s; /* Safari */
+  transition: width 2s;
+}
+
+.newTagInput input:focus {
+  width: 100px;
+}
