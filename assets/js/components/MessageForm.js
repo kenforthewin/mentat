@@ -1,8 +1,7 @@
 import React, {Component} from 'react';
-import {Form, TextArea} from 'semantic-ui-react'
+import {Form, TextArea, Icon} from 'semantic-ui-react'
 import 'emoji-mart/css/emoji-mart.css'
 import { Picker } from 'emoji-mart'
-import emoji from 'node-emoji';
 
 export default class MessageForm extends Component {
   constructor(props) {
@@ -58,7 +57,7 @@ export default class MessageForm extends Component {
           disabled={this.props.areTagsEmpty()}
           ref={this.textAreaNode}
           />
-        <a href="#" onClick={this.togglePicker} style={{position: 'absolute', bottom: '5px', right: '5px', fontSize: '20px', zIndex: '10000', opacity: 0.75 }}>{emoji.emojify(":slightly_smiling_face:")}</a>
+        <a href="#" onClick={this.togglePicker} style={{position: 'absolute', bottom: '5px', right: '5px', fontSize: '20px', zIndex: '10000', opacity: 0.75 }}><Icon name='star' /></a>
         {this.maybeRenderPicker()}
       </Form>
     );

@@ -3,7 +3,6 @@ import { Segment, Comment, Rail, Icon, Label, Ref, Transition, Dimmer, Loader, I
 import TimeAgo from 'react-timeago'
 import moment from 'moment'
 import Linkify from 'react-linkify'
-import emoji from 'node-emoji';
 import RenderedMessage from './RenderedMessage';
 
 class ChatSegment extends Component {
@@ -15,7 +14,6 @@ class ChatSegment extends Component {
       height: '100%'
     }
     this.chatSegment = React.createRef();
-    this.renderMessage = this.renderMessage.bind(this);
     this.handleScroll = this.handleScroll.bind(this);
     this.loadingMessages = false;
     this.lastMessageLoaded = false;
@@ -36,28 +34,6 @@ class ChatSegment extends Component {
         this.loadingMessages = false;
       }
     }
-  }
-
-  renderMessage(color, name, text, timestamp, tags, i=0, avatar='/images/matt.jpg') {
-    const labels = tags.map((t, i) => {
-      return (
-        <Label size="mini" as='a' key={i} onClick={this.props.onTagClick}>{t}</Label>
-      )
-    });
-    const emojiText = emoji.emojify(text);
-    return (
-      <Comment key={i}>
-        <Comment.Avatar style={{ backgroundColor: color, height: '2.5em'}}/>
-        <Comment.Content>
-          <Comment.Author as='a'>{name}</Comment.Author>
-          <Comment.Metadata>
-            <TimeAgo date={moment.utc(timestamp)} minPeriod={15}/>
-            {labels}
-          </Comment.Metadata>
-          <Comment.Text><Linkify>{emojiText}</Linkify></Comment.Text>
-        </Comment.Content>
-      </Comment>
-    );
   }
   
   handleRef = node => this.chatSegment = node

@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {Comment, Label, Dropdown, Input} from 'semantic-ui-react'
 import { Link } from 'react-router-dom';
-import emoji from 'node-emoji';
+import EmojiConvertor from 'emoji-js';
 import Linkify from 'react-linkify'
 import TimeAgo from 'react-timeago'
 import moment from 'moment'
@@ -9,7 +9,7 @@ import moment from 'moment'
 export default class RenderedMessage extends Component {
   constructor(props) {
     super(props);
-
+    this.emoji = new EmojiConvertor();
   }
 
   render() {
@@ -20,7 +20,7 @@ export default class RenderedMessage extends Component {
     });
     labels[labels.length] = <Label key={labels.length + 1} size='mini'><Input className='newTagInput' onKeyPress={(e) => this.props.handleNewTagOnMessage(e, this.props.id)} transparent placeholder='+'/></Label>
 
-    const emojiText = emoji.emojify(this.props.text);
+    const emojiText = this.emoji.replace_colons(this.props.text);
     return (
       <Comment>
         <Comment.Avatar style={{ backgroundColor: this.props.color, height: '2.5em'}}/>
