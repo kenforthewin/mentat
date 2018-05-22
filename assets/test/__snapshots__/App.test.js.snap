@@ -56,7 +56,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-15T20:16:16.838Z"
               title="2018-05-15 20:16"
             >
-              5 days ago
+              7 days ago
             </time>
             <a
               className="ui mini label"
@@ -64,11 +64,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            test
+            <span
+              className="Linkify"
+            >
+              test
+            </span>
           </div>
         </div>
       </div>
@@ -99,7 +125,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-15T20:16:18.141Z"
               title="2018-05-15 20:16"
             >
-              5 days ago
+              7 days ago
             </time>
             <a
               className="ui mini label"
@@ -107,11 +133,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            test
+            <span
+              className="Linkify"
+            >
+              test
+            </span>
           </div>
         </div>
       </div>
@@ -142,7 +194,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-15T20:16:19.139Z"
               title="2018-05-15 20:16"
             >
-              5 days ago
+              7 days ago
             </time>
             <a
               className="ui mini label"
@@ -150,11 +202,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            test
+            <span
+              className="Linkify"
+            >
+              test
+            </span>
           </div>
         </div>
       </div>
@@ -185,7 +263,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-15T20:16:20.039Z"
               title="2018-05-15 20:16"
             >
-              5 days ago
+              7 days ago
             </time>
             <a
               className="ui mini label"
@@ -193,11 +271,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            test
+            <span
+              className="Linkify"
+            >
+              test
+            </span>
           </div>
         </div>
       </div>
@@ -228,7 +332,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-15T20:16:20.868Z"
               title="2018-05-15 20:16"
             >
-              5 days ago
+              7 days ago
             </time>
             <a
               className="ui mini label"
@@ -236,11 +340,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            test
+            <span
+              className="Linkify"
+            >
+              test
+            </span>
           </div>
         </div>
       </div>
@@ -271,7 +401,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-15T20:16:21.655Z"
               title="2018-05-15 20:16"
             >
-              5 days ago
+              7 days ago
             </time>
             <a
               className="ui mini label"
@@ -279,11 +409,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            test
+            <span
+              className="Linkify"
+            >
+              test
+            </span>
           </div>
         </div>
       </div>
@@ -314,7 +470,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-15T20:29:38.452Z"
               title="2018-05-15 20:29"
             >
-              5 days ago
+              7 days ago
             </time>
             <a
               className="ui mini label"
@@ -322,11 +478,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            hello
+            <span
+              className="Linkify"
+            >
+              hello
+            </span>
           </div>
         </div>
       </div>
@@ -357,7 +539,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-17T14:03:00.416Z"
               title="2018-05-17 14:03"
             >
-              3 days ago
+              5 days ago
             </time>
             <a
               className="ui mini label"
@@ -383,11 +565,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            push
+            <span
+              className="Linkify"
+            >
+              push
+            </span>
           </div>
         </div>
       </div>
@@ -418,7 +626,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-17T14:07:58.996Z"
               title="2018-05-17 14:07"
             >
-              3 days ago
+              5 days ago
             </time>
             <a
               className="ui mini label"
@@ -432,11 +640,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            push
+            <span
+              className="Linkify"
+            >
+              push
+            </span>
           </div>
         </div>
       </div>
@@ -467,7 +701,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-18T19:54:20.075Z"
               title="2018-05-18 19:54"
             >
-              2 days ago
+              4 days ago
             </time>
             <a
               className="ui mini label"
@@ -475,11 +709,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            Yo
+            <span
+              className="Linkify"
+            >
+              Yo
+            </span>
           </div>
         </div>
       </div>
@@ -510,7 +770,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-18T19:55:37.684Z"
               title="2018-05-18 19:55"
             >
-              2 days ago
+              4 days ago
             </time>
             <a
               className="ui mini label"
@@ -518,11 +778,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            okay now
+            <span
+              className="Linkify"
+            >
+              okay now
+            </span>
           </div>
         </div>
       </div>
@@ -553,7 +839,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-19T18:10:12.277Z"
               title="2018-05-19 18:10"
             >
-              1 day ago
+              3 days ago
             </time>
             <a
               className="ui mini label"
@@ -561,11 +847,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            Okay message in general
+            <span
+              className="Linkify"
+            >
+              Okay message in general
+            </span>
           </div>
         </div>
       </div>
@@ -596,7 +908,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-19T18:12:00.780Z"
               title="2018-05-19 18:12"
             >
-              1 day ago
+              3 days ago
             </time>
             <a
               className="ui mini label"
@@ -604,11 +916,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            ##whaa a a
+            <span
+              className="Linkify"
+            >
+              ##whaa a a
+            </span>
           </div>
         </div>
       </div>
@@ -639,7 +977,7 @@ exports[`App Renders messages 1`] = `
               dateTime="2018-05-19T18:14:48.607Z"
               title="2018-05-19 18:14"
             >
-              1 day ago
+              3 days ago
             </time>
             <a
               className="ui mini label"
@@ -647,11 +985,37 @@ exports[`App Renders messages 1`] = `
             >
               general
             </a>
+            <div
+              className="ui mini label"
+              onClick={[Function]}
+            >
+              <div
+                className="ui transparent input newTagInput"
+              >
+                <input
+                  disabled={undefined}
+                  onChange={[Function]}
+                  onKeyPress={[Function]}
+                  placeholder="+"
+                  tabIndex={undefined}
+                  type="text"
+                />
+              </div>
+            </div>
           </div>
           <div
             className="text"
+            style={
+              Object {
+                "fontSize": "16px",
+              }
+            }
           >
-            #tag for your face
+            <span
+              className="Linkify"
+            >
+              #tag for your face
+            </span>
           </div>
         </div>
       </div>

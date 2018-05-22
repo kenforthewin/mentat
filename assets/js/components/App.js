@@ -22,13 +22,11 @@ class App extends Component {
     this.typing = false;
     this.privKeyObj = null;
     this.pubKeyObj = null;
-    this.state = { messages: [], tags: ['general'], tagOptions: ['general', 'random'], modalOpen: !this.props.userReducer.name || this.props.userReducer.name.length < 1, updateType: 'append', lastMessageLoaded: false, presences: {}, typing: [], requests: {}, messagesLoading: true };
+    this.state = { messages: [], tags: [], tagOptions: [], modalOpen: !this.props.userReducer.name || this.props.userReducer.name.length < 1, updateType: 'append', lastMessageLoaded: false, presences: {}, typing: [], requests: {}, messagesLoading: true };
 
     this.handleMessage = this.handleMessage.bind(this);
     this.initializeMessages = this.initializeMessages.bind(this);
     this.updateTags = this.updateTags.bind(this);
-    this.areTagsEmpty = this.areTagsEmpty.bind(this);
-    this.textPlaceholder = this.textPlaceholder.bind(this);
     this.dropdownOptions = this.dropdownOptions.bind(this);
     this.getTags = this.getTags.bind(this);
     this.clickTag = this.clickTag.bind(this);
@@ -76,49 +74,50 @@ class App extends Component {
     socket.connect();
     this.channel = socket.channel(`room:${this.room}`, {tags: this.state.tags, uuid: this.props.userReducer.uuid, color: this.props.userReducer.color});
 
-    this.userChannel = socket.channel(`user_room:${this.props.userReducer.uuid}`)
+    this.userChannel = socket.channel(`user_room:${this.props.userReducer.uuid}`, {room: this.room})
 
     this.userChannel.on("more_messages", payload => {
-      const messages = payload.messages.messages;
-      this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
-      let newMessages = [];
-      this.setState({
-        ...this.state,
-        messagesLoading: true
-      })
-      messages.forEach((m, i) => {
-        const options = {
-          message: openpgp.message.readArmored(m.body),     // parse armored message
-          privateKeys: [this.privKeyObj]                            // for decryption
-        };
-        openpgp.decrypt(options).then((plaintext) => {
-          newMessages = [
-            {id: m.id, name: m.user.name, color: m.user.color, text: plaintext.data, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)},
-            ...newMessages
-          ];
-
-          if (i === messages.length - 1) {
-            this.setState({
-              ...this.state,
-              messages: [
-                ...newMessages,
-                ...this.state.messages
-              ],
-              updateType: 'prepend',
-              messagesLoading: false
-            })
-          }
-        });
-      });
-
-      if (messages.length < 1) {
+      if (this.room === payload.room) {
+        const messages = payload.messages.messages;
+        this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
+        let newMessages = [];
         this.setState({
           ...this.state,
-          lastMessageLoaded: true,
-          messagesLoading: false
+          messagesLoading: true
         })
-      }
+        messages.forEach((m, i) => {
+          const options = {
+            message: openpgp.message.readArmored(m.body),     // parse armored message
+            privateKeys: [this.privKeyObj]                            // for decryption
+          };
+          openpgp.decrypt(options).then((plaintext) => {
+            newMessages = [
+              {id: m.id, name: m.user.name, color: m.user.color, text: plaintext.data, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)},
+              ...newMessages
+            ];
 
+            if (i === messages.length - 1) {
+              this.setState({
+                ...this.state,
+                messages: [
+                  ...newMessages,
+                  ...this.state.messages
+                ],
+                updateType: 'prepend',
+                messagesLoading: false
+              })
+            }
+          });
+        });
+
+        if (messages.length < 1) {
+          this.setState({
+            ...this.state,
+            lastMessageLoaded: true,
+            messagesLoading: false
+          })
+        }
+      }
     })
 
     this.userChannel.join()
@@ -226,11 +225,11 @@ class App extends Component {
     this.channel.on("new_msg", payload => {
       let tags = this.state.tagOptions;
       let postMessage = false;
-      payload.tags.forEach((t) => { 
+      payload.tags.forEach((t) => {
         tags = tags.includes(t) ? tags : tags.concat([t]);
         postMessage = postMessage || this.state.tags.includes(t);
       });
-      if (postMessage) {
+      if (this.state.tags.length === 0 || postMessage) {
        this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
         const options = {
           message: openpgp.message.readArmored(payload.text),     // parse armored message
@@ -267,9 +266,14 @@ class App extends Component {
             payload.new_tag
           ]
         }
+        const newPossibleTags = this.state.tagOptions.includes(payload.new_tag) ? this.state.tagOptions : [
+          ...this.state.tagOptions,
+          payload.new_tag
+        ];
         this.setState({
           ...this.state,
-          messages
+          messages,
+          tagOptions: newPossibleTags
         })
       }
     })
@@ -369,7 +373,7 @@ class App extends Component {
       clearTimeout(this.typeTimeout);
       this.channel.push("new_typing", {uuid: this.props.userReducer.uuid, typing: false});
 
-      if(e.target.value.length > 0 && this.state.tags.length > 0) {
+      if(e.target.value.length > 0 ) {
         if (e.target.value[0] === '#' && !e.target.value.includes(" ")) {
           return this.processTagFromInput(e);
         }
@@ -435,17 +439,6 @@ class App extends Component {
 
   updateTags(e, data) {
     this.pushNewTags(data.value)
-  }
-
-  areTagsEmpty() {
-    return this.state.tags.length === 0;
-  }
-
-  textPlaceholder() {
-    if (this.areTagsEmpty()) {
-      return 'Select a tag';
-    }
-    return 'Type your message';
   }
 
   dropdownOptions() {
@@ -578,9 +571,7 @@ class App extends Component {
             />
             
         <MessageForm
-            textPlaceholder={this.textPlaceholder}
-            handleMessage={this.handleMessage}
-            areTagsEmpty={this.areTagsEmpty} />
+            handleMessage={this.handleMessage} />
         {/* <Picker /> */}
       </div> );
   }

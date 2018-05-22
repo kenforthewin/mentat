@@ -52,9 +52,8 @@ export default class MessageForm extends Component {
     return (
       <Form style={this.formStyles}>
         <TextArea rows={1}
-          placeholder={this.props.textPlaceholder()} 
+          placeholder={"Enter your message"} 
           onKeyPress={this.props.handleMessage} 
-          disabled={this.props.areTagsEmpty()}
           ref={this.textAreaNode}
           />
         <a href="#" onClick={this.togglePicker} style={{position: 'absolute', bottom: '5px', right: '5px', fontSize: '20px', zIndex: '10000', opacity: 0.75 }}><Icon name='star' /></a>

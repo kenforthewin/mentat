@@ -9,7 +9,12 @@ defmodule AppWeb.RoomChannel do
     team = Repo.one(from t in Team, where: t.name == ^private_room_id)
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team.id, select: t.id)
     user = Repo.one(from u in User, where: u.uuid == ^uuid) || Repo.insert!(%User{uuid: uuid, color: color})
-    messages = Repo.all(from m in Message, join: t in MessageTag, on:  m.id == t.message_id, where: m.team_id == ^team.id and t.tag_id in ^tag_ids, order_by: [desc: m.inserted_at], limit: 15, distinct: true )
+    if length(tag_ids) > 0 do
+      messages = Repo.all(from m in Message, join: t in MessageTag, on:  m.id == t.message_id, where: m.team_id == ^team.id and t.tag_id in ^tag_ids, order_by: [desc: m.inserted_at], limit: 15, distinct: true )
+    else
+      messages = Repo.all(from m in Message, where: m.team_id == ^team.id, order_by: [desc: m.inserted_at], limit: 15)
+    end
+
     messages = Repo.preload messages, :tags
     messages = Repo.preload messages, :user
     rendered_todos = MessageView.render("index.json", %{messages: messages})
@@ -19,29 +24,34 @@ defmodule AppWeb.RoomChannel do
     {:ok, %{messages: rendered_todos, tags: rendered_tags, name: user.name, color: user.color}, assign(socket, :team_id, team.id)}
   end
   
-  def join("user_room:" <> uuid, params, socket) do
+  def join("user_room:" <> uuid, %{"room" => private_room_id}, socket) do
+    team = Repo.one(from t in Team, where: t.name == ^private_room_id)
+
     # user_room handles events such as:
     ## - user scrolls up to load previous messages
     user = Repo.one(from u in User, where: u.uuid == ^uuid) || Repo.insert!(%User{uuid: uuid})
-    {:ok, %{}, socket}
+    {:ok, %{}, assign(socket, :team_id, team.id)}
   end
 
-  def handle_in("more_messages", %{"id" => id, "tags" => tags}, socket) do
-    tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == 1, select: t.id)
-    messages = Repo.all(from m in Message, join: t in MessageTag, on:  m.id == t.message_id, where: m.team_id == 1 and t.tag_id in ^tag_ids and m.id < ^id, order_by: [desc: m.inserted_at], limit: 15, distinct: true )
+  def handle_in("more_messages", %{"id" => id, "tags" => tags, "room" => team}, socket) do
+    team_id = socket.assigns.team_id
+
+    tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id, select: t.id)
+    if length(tag_ids) > 0 do
+      messages = Repo.all(from m in Message, join: t in MessageTag, on:  m.id == t.message_id, where: m.team_id == ^team_id and t.tag_id in ^tag_ids and m.id < ^id, order_by: [desc: m.inserted_at], limit: 15, distinct: true )
+    else
+      messages = Repo.all(from m in Message, where: m.team_id == ^team_id and m.id < ^id, order_by: [desc: m.inserted_at], limit: 15)
+    end
     messages = Repo.preload messages, :tags
     messages = Repo.preload messages, :user
     rendered_messages = MessageView.render("index.json", %{messages: messages})
-    tags = Repo.all(from t in Tag, where: t.team_id == 1)
-    broadcast! socket, "more_messages", %{messages: rendered_messages}
+    broadcast! socket, "more_messages", %{messages: rendered_messages, room: team}
     {:noreply, socket}
   end
 
 
   def handle_in("new_msg", %{"uuid" => uuid, "room" => team, "tags" => tags, "text" => text}, socket) do
     # TODO run a set of validations on message here:
-    #### 1. message length > 0
-    #### 2. tags.length > 0
     #### 3. Each tag has string length > 0
 
     user = Repo.one(from u in User, where: u.uuid == ^uuid)
@@ -52,13 +62,17 @@ defmodule AppWeb.RoomChannel do
     broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team, id: message.id}
     final_tags = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
     Enum.each(final_tags, fn(t) -> Repo.insert!(%MessageTag{message_id: message.id, tag_id: t.id}) end)
-    {:noreply, socket}
+    {:reply, {:ok, %{}}, socket}
   end
 
   def handle_in("new_tags", %{"room" => team, "tags" => tags, "uuid" => uuid}, socket) do
     team_id = socket.assigns.team_id
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id, select: t.id)
-    messages = Repo.all(from m in Message, join: t in MessageTag, on:  m.id == t.message_id, where: m.team_id == ^team_id and t.tag_id in ^tag_ids, order_by: [desc: m.inserted_at], limit: 15, distinct: true )
+    if length(tag_ids) > 0 do
+      messages = Repo.all(from m in Message, join: t in MessageTag, on:  m.id == t.message_id, where: m.team_id == ^team_id and t.tag_id in ^tag_ids, order_by: [desc: m.inserted_at], limit: 15, distinct: true )
+    else
+      messages = Repo.all(from m in Message, where: m.team_id == ^team_id, order_by: [desc: m.inserted_at], limit: 15)
+    end
     messages = Repo.preload messages, :tags
     messages = Repo.preload messages, :user
     rendered_todos = MessageView.render("index.json", %{messages: messages})
@@ -72,6 +86,7 @@ defmodule AppWeb.RoomChannel do
     broadcast! socket, "get_tags", rendered_tags
     {:noreply, socket}
   end
+
   def handle_in("new_message_tag", %{"id" => id, "newTag" => new_tag}, socket) do
     team_id = socket.assigns.team_id
     tag = Repo.one(from t in Tag, where: t.team_id == ^team_id and t.name == ^new_tag)
