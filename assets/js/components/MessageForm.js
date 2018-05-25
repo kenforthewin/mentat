@@ -56,7 +56,7 @@ export default class MessageForm extends Component {
           onKeyPress={this.props.handleMessage} 
           ref={this.textAreaNode}
           />
-        <a href="#" onClick={this.togglePicker} style={{position: 'absolute', bottom: '5px', right: '5px', fontSize: '20px', zIndex: '10000', opacity: 0.75 }}><Icon name='star' /></a>
+        <Icon name='star' onClick={this.togglePicker} style={{position: 'absolute', bottom: '5px', right: '5px', fontSize: '20px', zIndex: '10000'}} />
         {this.maybeRenderPicker()}
       </Form>
     );

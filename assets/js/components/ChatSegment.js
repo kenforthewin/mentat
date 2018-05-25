@@ -59,8 +59,7 @@ class ChatSegment extends Component {
 
   handleScroll(e) {
     const node = this.chatSegment;
-    if (!this.props.lastMessageLoaded && !this.loadingMessages && node.scrollTop === 0 && this.props.messages.length > 0) {
-      this.loadingMessages = true;
+    if (!this.props.lastMessageLoaded && !this.props.loadingMessages && node.scrollTop === 0 && this.props.messages.length > 0) {
       this.props.loadMoreMessages(node);
     }
   }
