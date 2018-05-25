@@ -31,7 +31,7 @@ export default class MessageForm extends Component {
   }
 
   addEmoji(emoji) {
-    this.textAreaNode.current.ref.value = this.textAreaNode.current.ref.value + emoji.colons;
+    this.textAreaNode.current.ref.value = this.textAreaNode.current.ref.value + emoji.native;
     this.textAreaNode.current.ref.focus();
 
     this.setState({
