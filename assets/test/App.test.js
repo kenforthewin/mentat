@@ -1,7 +1,8 @@
 import React from 'react';
-import {Dropdown,Modal} from 'semantic-ui-react'
+import {Dropdown,Modal,TextArea} from 'semantic-ui-react'
 import ChatSegment from '../js/components/ChatSegment';
 import App from '../js/components/App';
+import MessageForm from '../js/components/MessageForm';
 import renderer from 'react-test-renderer';
 import {mockDecryptedMessages, initialState} from './mocks/index';
 import configureStore from 'redux-mock-store'
@@ -14,13 +15,13 @@ import userReducer from '../js/reducers/userReducer';
 import cryptoReducer from '../js/reducers/cryptoReducer';
 import {combineReducers,applyMiddleware,createStore} from 'redux';
 import {generateKeypair} from '../js/actions/cryptoActions';
+
 let store,container;
 Enzyme.configure({ adapter: new Adapter() })
 
 describe('App', () => {
 
   beforeAll(()=>{
-    window.crypto = { getRandomValues: () => { return [3209438127,3209438127,3209438127,3209438127]} }
     store = createStore(
       combineReducers({userReducer, cryptoReducer}),
       applyMiddleware(thunk)
@@ -61,5 +62,9 @@ describe('App', () => {
     container.update();
     expect(state.userReducer.name).toBeTruthy();
     expect(container.dive().find(ChatSegment).length).toEqual(1);
+  })
+
+  it('sends typing indicator when typing', () => {
+    expect(container.dive().find(MessageForm).dive().find(TextArea).length).toEqual(1);
   })
 })

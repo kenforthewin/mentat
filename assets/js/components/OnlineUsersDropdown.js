@@ -1,10 +1,11 @@
 import React, {Component} from 'react';
-import {Dropdown, Form, Item, Button} from 'semantic-ui-react'
+import {Dropdown, Form, Item, Button, Label} from 'semantic-ui-react'
 
 export default class OnlineUsersDropdown extends Component {
   constructor(props) {
     super(props);
     this.renderOnlineUsers = this.renderOnlineUsers.bind(this);
+    this.onlineCount = this.onlineCount.bind(this);
 
   }
 
@@ -17,6 +18,10 @@ export default class OnlineUsersDropdown extends Component {
         <Dropdown.Item label={{ empty: true, circular: true, style: {backgroundColor: metas.color} }} text={metas.name} key={i} />
       )
     })
+  }
+
+  onlineCount() {
+    return Object.values(this.props.presences).length;
   }
 
   renderRequests() {
@@ -39,16 +44,19 @@ export default class OnlineUsersDropdown extends Component {
 
   render() {
     return (
-    <Dropdown icon='users' size='large' style={{flex: 0, marginRight: '10px'}} direction='right'>
-      <Dropdown.Menu>
-        <Dropdown.Header content='Online Now' />
-        <Dropdown.Divider />
-        {this.renderOnlineUsers()}
-        <Dropdown.Header content='Requests' />
-        <Dropdown.Divider />
-        {this.renderRequests()}
-      </Dropdown.Menu>
-    </Dropdown>
+    <span  style={{flex: '0 1 auto', marginRight: '10px'}}> {this.onlineCount()} {' '}
+
+      <Dropdown icon='users' size='large' direction='right' content='1' inline>
+        <Dropdown.Menu>
+          <Dropdown.Header content='Online Now' />
+          <Dropdown.Divider />
+          {this.renderOnlineUsers()}
+          <Dropdown.Header content='Requests' />
+          <Dropdown.Divider />
+          {this.renderRequests()}
+        </Dropdown.Menu>
+      </Dropdown>
+    </span>
     );
   }
 }
