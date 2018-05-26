@@ -36,34 +36,35 @@ export default class RenderedText extends Component {
               ...this.state,
               loaded: true
             });
-          } else if (this.type.startsWith('text/html')) {
-            const myExtrator = new Extractor();
-            myExtrator.extract( myBlob, ( err, data ) => {
-              if( err ){
-                throw( err )
-              } else {
-                console.log(data)
-                this.rendered = (
-                  <Card as='a' href={this.props.url}>
-                    <Image src={data.meta.thumbnail} />
-                    <Card.Content>
-                      <Card.Header>
-                        {data.meta.title}
-                      </Card.Header>
-                      <Card.Description>
-                        {data.meta.description}
-                      </Card.Description>
-                    </Card.Content>
-                  </Card>
-                );
+          } 
+          // else if (this.type.startsWith('text/html')) {
+          //   const myExtrator = new Extractor();
+          //   myExtrator.extract( myBlob, ( err, data ) => {
+          //     if( err ){
+          //       throw( err )
+          //     } else {
+          //       console.log(data)
+          //       this.rendered = (
+          //         <Card as='a' href={this.props.url}>
+          //           <Image src={data.meta.thumbnail} />
+          //           <Card.Content>
+          //             <Card.Header>
+          //               {data.meta.title}
+          //             </Card.Header>
+          //             <Card.Description>
+          //               {data.meta.description}
+          //             </Card.Description>
+          //           </Card.Content>
+          //         </Card>
+          //       );
 
-                this.setState({
-                  ...this.state,
-                  loaded: true
-                });
-              }
-            })
-          }
+          //       this.setState({
+          //         ...this.state,
+          //         loaded: true
+          //       });
+          //     }
+          //   })
+          // }
         })
         .catch((e) => {
           console.log(e)

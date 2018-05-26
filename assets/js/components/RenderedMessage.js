@@ -23,10 +23,10 @@ export default class RenderedMessage extends Component {
     labels[labels.length] = <Label key={labels.length + 1} size='mini'><Input className='newTagInput' onKeyPress={(e) => this.props.handleNewTagOnMessage(e, this.props.id)} transparent placeholder='+'/></Label>
 
     const emojiText = this.emoji.replace_colons(this.props.text);
-    const urls = twitter.extractUrls(this.props.text).map((url) => url.startsWith('http') ? url : 'https://' + url);
-    const renderedUrls = urls.map((url, i) => {
-      return ( <RenderedUrl key={i + 1} name={this.props.name} timestamp={moment.utc(this.props.timestamp)} labels={labels} url={url} color={this.props.color} scrollDown={this.props.scrollDown} /> );
-    })
+    // const urls = twitter.extractUrls(this.props.text).map((url) => url.startsWith('http') ? url : 'https://' + url);
+    // const renderedUrls = urls.map((url, i) => {
+    //   return ( <RenderedUrl key={i + 1} name={this.props.name} timestamp={moment.utc(this.props.timestamp)} labels={labels} url={url} color={this.props.color} scrollDown={this.props.scrollDown} /> );
+    // })
     const comment = (
       <Comment key={0}>
         <Comment.Avatar style={{ backgroundColor: this.props.color, height: '2.5em'}}/>
@@ -40,8 +40,8 @@ export default class RenderedMessage extends Component {
             <Linkify>
               {emojiText}
             </Linkify>
-            <br />
-            {renderedUrls}
+            {/* <br />
+            {renderedUrls} */}
           </Comment.Text>
         </Comment.Content>
       </Comment>
