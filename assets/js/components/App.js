@@ -222,14 +222,12 @@ class App extends Component {
         if (this.props.cryptoReducer.groups[this.room]) {
           this.initializeMessages(resp.messages.messages);
           this.props.updateName(resp.name, resp.color);
-          if (!this.props.cryptoReducer.publicKey) {
+          this.getTags(resp.tags.tags);
+        } else if (!this.props.cryptoReducer.publicKey) {
             this.props.generateKeypair();
-          }
-          else if (!this.props.cryptoReducer.groups[this.room]) {
-            this.requestClaimOrInvite();
-          } else {
-              this.getTags(resp.tags.tags);
-          }
+        }
+        else{
+          this.requestClaimOrInvite();
         }
       }).receive("error", resp => { console.log("Unable to join", resp) });
 

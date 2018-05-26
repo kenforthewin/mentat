@@ -15,6 +15,7 @@ class ChatSegment extends Component {
     }
     this.chatSegment = React.createRef();
     this.handleScroll = this.handleScroll.bind(this);
+    this.scrollDown = this.scrollDown.bind(this);
     this.loadingMessages = false;
     this.lastMessageLoaded = false;
   }
@@ -35,6 +36,10 @@ class ChatSegment extends Component {
       }
     }
   }
+
+  scrollDown() {
+    this.chatSegment.scrollTop = this.chatSegment.scrollHeight - this.chatSegment.clientHeight;
+  }
   
   handleRef = node => this.chatSegment = node
 
@@ -52,6 +57,7 @@ class ChatSegment extends Component {
             key={i}
             onTagClick={this.props.onTagClick} 
             handleNewTagOnMessage={this.props.handleNewTagOnMessage}
+            scrollDown={this.scrollDown}
             />
       )
     });
