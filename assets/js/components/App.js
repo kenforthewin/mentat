@@ -42,6 +42,8 @@ class App extends Component {
     this.dismissRequest = this.dismissRequest.bind(this);
     this.processTagFromInput = this.processTagFromInput.bind(this);
     this.handleNewTagOnMessage = this.handleNewTagOnMessage.bind(this);
+    this.setupNotifications = this.setupNotifications.bind(this);
+    this.maybeNotify = this.maybeNotify.bind(this);
 
     this.nameInput = React.createRef();
     this.colorInput = React.createRef();
@@ -177,7 +179,7 @@ class App extends Component {
           privateKeys: [this.privKeyObj]                            // for decryption
         };
         openpgp.decrypt(options).then((plaintext) => {
-          const newMessage = { id: payload.id, name: payload.name, text: plaintext.data, color: payload.color, timestamp: moment().format(), tags: payload.tags }
+          const newMessage = { id: payload.id, name: payload.name, text: plaintext.data, color: payload.color, timestamp: moment().format(), tags: payload.tags, uuid: payload.uuid }
           this.setState({
             ...this.state,
             tagOptions: tags,
@@ -187,6 +189,7 @@ class App extends Component {
             ],
             updateType: 'append'
           });
+          this.maybeNotify(newMessage);
         });
       }
     });
@@ -229,6 +232,36 @@ class App extends Component {
           }
         }
       }).receive("error", resp => { console.log("Unable to join", resp) });
+
+    this.setupNotifications();
+  }
+
+  maybeNotify(message) {
+    if (!("Notification" in window)) {
+      // alert("This browser does not support system notifications");
+    }
+    else if (Notification.permission === "granted") {
+      if (message.uuid !== this.props.userReducer.uuid && document.hidden) {
+        var notification = new Notification(message.name, {body: message.text});
+      }
+    }
+  }
+
+  setupNotifications() {
+    if (!("Notification" in window)) {
+      // alert("This browser does not support system notifications");
+    }
+
+    else if (Notification.permission === "granted") {
+      // var notification = new Notification("Hi there!");
+    }
+    else if (Notification.permission !== 'denied') {
+      Notification.requestPermission(function (permission) {
+        // if (permission === "granted") {
+        //   // var notification = new Notification("Hi there!");
+        // }
+      });
+    }
   }
 
   componentWillUnmount() {

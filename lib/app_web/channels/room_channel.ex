@@ -44,7 +44,7 @@ defmodule AppWeb.RoomChannel do
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
     Enum.each(tags, fn(t) -> if !Enum.any?(tag_ids, fn(i) -> i.name == t end), do: Repo.insert!(%Tag{team_id: team_id, name: t}) end)
     message = Repo.insert!(%Message{body: text, team_id: team_id, user_id: user.id})
-    broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team, id: message.id}
+    broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team, id: message.id, uuid: uuid}
     final_tags = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
     Enum.each(final_tags, fn(t) -> Repo.insert!(%MessageTag{message_id: message.id, tag_id: t.id}) end)
     {:reply, {:ok, %{}}, socket}
