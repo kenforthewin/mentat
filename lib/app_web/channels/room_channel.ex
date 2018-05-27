@@ -4,6 +4,7 @@ defmodule AppWeb.RoomChannel do
   require Logger
   alias App.{Repo, Message, Tag, Team, MessageTag, User}
   alias AppWeb.{MessageView, TagView, Presence}
+  alias Scrape.Website
 
   def join("room:" <> private_room_id, %{"tags" => tags, "uuid" => uuid, "color" => color}, socket) do
     team = Repo.one(from t in Team, where: t.name == ^private_room_id)
@@ -35,7 +36,7 @@ defmodule AppWeb.RoomChannel do
     {:reply, {:ok, %{messages: rendered_messages}}, socket}
   end
 
-  def handle_in("new_msg", %{"uuid" => uuid, "room" => team, "tags" => tags, "text" => text}, socket) do
+  def handle_in("new_msg", %{"uuid" => uuid, "room" => team, "tags" => tags, "text" => text, "urls" => urls}, socket) do
     # TODO run a set of validations on message here:
     #### 3. Each tag has string length > 0
 
@@ -45,6 +46,34 @@ defmodule AppWeb.RoomChannel do
     Enum.each(tags, fn(t) -> if !Enum.any?(tag_ids, fn(i) -> i.name == t end), do: Repo.insert!(%Tag{team_id: team_id, name: t}) end)
     message = Repo.insert!(%Message{body: text, team_id: team_id, user_id: user.id})
     broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team, id: message.id, uuid: uuid}
+    rendered_url = cond do
+      urls |> Enum.any? ->
+        url = Enum.at(urls, 0)
+        case HTTPoison.get(url) do
+          {:ok, %HTTPoison.Response{status_code: 200, body: body, headers: headers, request_url: request_url}} ->
+            {_, type} = List.keyfind(headers, "content-type", 0) || List.keyfind(headers, "Content-Type", 0)
+            cond do
+              type |> String.starts_with?("image") ->
+                %{content_type: type, url: request_url, show: true}
+              type |> String.starts_with?("text/html") ->
+                parse = Website.parse(body, request_url)
+                %{content_type: type, url: request_url, title: parse.title, description: parse.description, image: parse.image, show: true}
+              true ->
+                %{show: false}
+            end
+          {:ok, %HTTPoison.Response{status_code: 404}} ->
+            %{show: false}
+          {:error, %HTTPoison.Error{reason: reason}} ->
+            %{show: false}
+        end
+      true ->
+        %{show: false}
+    end
+    message = Ecto.Changeset.change(message, %{url_data: rendered_url})
+    message = Repo.update!(message)
+    if rendered_url.show do
+      broadcast! socket, "new_url_data", %{id: message.id, url_data: rendered_url}
+    end
     final_tags = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
     Enum.each(final_tags, fn(t) -> Repo.insert!(%MessageTag{message_id: message.id, tag_id: t.id}) end)
     {:reply, {:ok, %{}}, socket}

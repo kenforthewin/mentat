@@ -18,6 +18,7 @@ class ChatSegment extends Component {
     this.scrollDown = this.scrollDown.bind(this);
     this.loadingMessages = false;
     this.lastMessageLoaded = false;
+    this.scrolledDown = true;
   }
 
   getSnapshotBeforeUpdate(prevProps, prevState) {
@@ -38,7 +39,9 @@ class ChatSegment extends Component {
   }
 
   scrollDown() {
-    this.chatSegment.scrollTop = this.chatSegment.scrollHeight - this.chatSegment.clientHeight;
+    if (this.scrolledDown) {
+      this.chatSegment.scrollTop = this.chatSegment.scrollHeight - this.chatSegment.clientHeight;
+    }
   }
   
   handleRef = node => this.chatSegment = node
@@ -58,6 +61,7 @@ class ChatSegment extends Component {
             onTagClick={this.props.onTagClick} 
             handleNewTagOnMessage={this.props.handleNewTagOnMessage}
             scrollDown={this.scrollDown}
+            urlData={message.urlData}
             />
       )
     });
@@ -65,6 +69,7 @@ class ChatSegment extends Component {
 
   handleScroll(e) {
     const node = this.chatSegment;
+    this.scrolledDown = node.scrollTop === node.scrollHeight - node.clientHeight;
     if (!this.props.lastMessageLoaded && !this.props.loadingMessages && node.scrollTop === 0 && this.props.messages.length > 0) {
       this.props.loadMoreMessages(node);
     }

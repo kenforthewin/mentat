@@ -40,7 +40,10 @@ defmodule App.Mixfile do
       {:phoenix_html, "~> 2.10"},
       {:phoenix_live_reload, "~> 1.0", only: :dev},
       {:gettext, "~> 0.11"},
-      {:cowboy, "~> 1.0"}
+      {:cowboy, "~> 1.0"},
+      {:scrape, "~> 2.0"},
+      {:html5ever, "~> 0.5.0", override: true},
+      {:rustler, "~> 0.16.0", override: true}
     ]
   end
 

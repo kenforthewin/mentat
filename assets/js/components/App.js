@@ -14,6 +14,7 @@ import TagsDropdown from './TagsDropdown';
 import MessageForm from './MessageForm';
 import UserModal from './UserModal';
 let openpgp =  require('openpgp');
+
 import { generateKeypair, generateGroupKeypair, receiveGroupKeypair } from '../actions/cryptoActions';
 
 class App extends Component {
@@ -166,6 +167,7 @@ class App extends Component {
     });
 
     this.channel.on("new_msg", payload => {
+      console.log(payload)
       let tags = this.state.tagOptions;
       let postMessage = false;
       payload.tags.forEach((t) => {
@@ -179,7 +181,7 @@ class App extends Component {
           privateKeys: [this.privKeyObj]                            // for decryption
         };
         openpgp.decrypt(options).then((plaintext) => {
-          const newMessage = { id: payload.id, name: payload.name, text: plaintext.data, color: payload.color, timestamp: moment().format(), tags: payload.tags, uuid: payload.uuid }
+          const newMessage = {id: payload.id, name: payload.name, text: plaintext.data, color: payload.color, timestamp: moment().format(), tags: payload.tags, uuid: payload.uuid }
           this.setState({
             ...this.state,
             tagOptions: tags,
@@ -190,6 +192,21 @@ class App extends Component {
             updateType: 'append'
           });
           this.maybeNotify(newMessage);
+        });
+      }
+    });
+
+    this.channel.on("new_url_data", payload => {
+      const messageIndex = this.state.messages.findIndex(e => e.id === payload.id);
+      if(messageIndex !== -1) {
+        let messages = this.state.messages;
+        messages[messageIndex] = {
+          ...messages[messageIndex],
+          urlData: payload.url_data
+        }
+        this.setState({
+          ...this.state,
+          messages
         });
       }
     });
@@ -220,6 +237,7 @@ class App extends Component {
     this.channel.join()
       .receive("ok", resp => {
         if (this.props.cryptoReducer.groups[this.room]) {
+          console.log(resp.messages.messages)
           this.initializeMessages(resp.messages.messages);
           this.props.updateName(resp.name, resp.color);
           this.getTags(resp.tags.tags);
@@ -283,7 +301,7 @@ class App extends Component {
       };
       openpgp.decrypt(options).then((plaintext) => {
         newMessages = [
-        {id: m.id, name: m.user.name, color: m.user.color, text: plaintext.data, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)},
+        {urlData: m.url_data, id: m.id, name: m.user.name, color: m.user.color, text: plaintext.data, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)},
           ...newMessages
         ]
         if (i === messages.length - 1) {
@@ -356,15 +374,17 @@ class App extends Component {
           armored: false
         };
         let allTags = this.state.tags;
+        const urls = twitter.extractUrls(message).map((url) => url.startsWith('http') ? url : 'https://' + url);
         extractedTags.forEach((extractedTag) => {
           allTags = allTags.includes(extractedTag) ? allTags : [
             ...allTags,
             extractedTag
           ]
         })
+
         openpgp.encrypt(options).then((ciphertext) => {
           const encrypted = ciphertext.data;
-          this.channel.push("new_msg", {text: encrypted, uuid: this.props.userReducer.uuid, tags: allTags, room: this.room});
+          this.channel.push("new_msg", {urls: urls, text: encrypted, uuid: this.props.userReducer.uuid, tags: allTags, room: this.room});
         });
         e.target.value = '';
       }
