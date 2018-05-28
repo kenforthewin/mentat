@@ -46,10 +46,12 @@ defmodule AppWeb.RoomChannel do
     Enum.each(tags, fn(t) -> if !Enum.any?(tag_ids, fn(i) -> i.name == t end), do: Repo.insert!(%Tag{team_id: team_id, name: t}) end)
     message = Repo.insert!(%Message{body: text, team_id: team_id, user_id: user.id})
     broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team, id: message.id, uuid: uuid}
+    final_tags = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
+    Enum.each(final_tags, fn(t) -> Repo.insert!(%MessageTag{message_id: message.id, tag_id: t.id}) end)
     rendered_url = cond do
       urls |> Enum.any? ->
         url = Enum.at(urls, 0)
-        case HTTPoison.get(url) do
+        case HTTPoison.get(url, [], [follow_redirect: true]) do
           {:ok, %HTTPoison.Response{status_code: 200, body: body, headers: headers, request_url: request_url}} ->
             {_, type} = List.keyfind(headers, "content-type", 0) || List.keyfind(headers, "Content-Type", 0)
             cond do
@@ -74,8 +76,6 @@ defmodule AppWeb.RoomChannel do
     if rendered_url.show do
       broadcast! socket, "new_url_data", %{id: message.id, url_data: rendered_url}
     end
-    final_tags = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
-    Enum.each(final_tags, fn(t) -> Repo.insert!(%MessageTag{message_id: message.id, tag_id: t.id}) end)
     {:reply, {:ok, %{}}, socket}
   end
 

@@ -3,6 +3,7 @@ import { routerReducer } from 'react-router-redux';
 import storage from 'redux-persist/es/storage';
 import userReducer from "./userReducer";
 import cryptoReducer from './cryptoReducer'
+import messageReducer from './messageReducer'
 const config = {
   key: 'root',
   storage,
@@ -11,7 +12,8 @@ const config = {
 const appReducer = persistCombineReducers(config, {
   routerReducer,
   userReducer,
-  cryptoReducer
+  cryptoReducer,
+  messageReducer
 });
 
 export default appReducer;

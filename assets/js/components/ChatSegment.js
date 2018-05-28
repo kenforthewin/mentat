@@ -26,7 +26,7 @@ class ChatSegment extends Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if ((prevProps.messages !== this.props.messages && this.props.messages.length > 0) || prevProps.typingLabelVisible !== this.props.typingLabelVisible) {
+    if ((prevProps.messageIds !== this.props.messageIds && this.props.messageIds.length > 0) || prevProps.typingLabelVisible !== this.props.typingLabelVisible) {
       const node = this.chatSegment;
       if (this.props.updateType === 'append') {
         node.scrollTop = node.scrollHeight - node.clientHeight;
@@ -40,6 +40,7 @@ class ChatSegment extends Component {
 
   scrollDown() {
     if (this.scrolledDown) {
+      console.log('scrolling bruh')
       this.chatSegment.scrollTop = this.chatSegment.scrollHeight - this.chatSegment.clientHeight;
     }
   }

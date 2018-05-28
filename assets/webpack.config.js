@@ -3,7 +3,7 @@ const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
 
 module.exports = {
   mode: "development",
-  entry: "/app/assets/js/app.js",
+  entry: ["babel-polyfill", "/app/assets/js/app.js"],
   output: {
     filename: "app.js",
     path: "/app/priv/static/js",
