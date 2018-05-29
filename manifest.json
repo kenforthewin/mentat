@@ -1,7 +1,7 @@
 {
   "name": "Groupchat",
   "short_name": "Groupchat",
-  "start_url": ".",
+  "start_url": "/",
   "description": "Group chat with tags and pretty good privacy.",
   "display": "standalone",
   "icons": [{
