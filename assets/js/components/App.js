@@ -13,7 +13,7 @@ import MainMenuDropdown from './MainMenuDropdown';
 import TagsDropdown from './TagsDropdown';
 import MessageForm from './MessageForm';
 import UserModal from './UserModal';
-import {addMessage,newUrl,newTag} from '../actions/messageActions';
+import {addMessage,newUrl,newTag,refreshTags} from '../actions/messageActions';
 
 let openpgp =  require('openpgp');
 
@@ -297,6 +297,8 @@ class App extends Component {
         const decryption = await openpgp.decrypt(options)
         const newMessage = {urlData: m.url_data, id: m.id, name: m.user.name, color: m.user.color, text: decryption.data, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)}
         this.props.addMessage(newMessage);
+      } else {
+        this.props.refreshTags(m.id, m.tags.map(t => t.name));
       }
     }));
     if(messages.length === 0) {
@@ -460,6 +462,8 @@ class App extends Component {
               const decrypt = await openpgp.decrypt(options);
               const newMessage = {id: m.id, name: m.user.name, color: m.user.color, text: decrypt.data, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)}
               this.props.addMessage(newMessage);
+            } else {
+              this.props.refreshTags(m.id, m.tags.map(t => t.name));
             }
           }));
 
@@ -599,6 +603,7 @@ const mapStateToProps = (state) => {
 }
 const mapDispatchToProps = (dispatch) => {
   return {
+    refreshTags: (id, tags) => dispatch(refreshTags(id, tags)),
     newTag: (id, tag) => dispatch(newTag(id, tag)),
     newUrl: (id, urlData) => dispatch(newUrl(id, urlData)),
     addMessage: (message) => dispatch(addMessage(message)),

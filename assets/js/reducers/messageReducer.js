@@ -39,6 +39,17 @@ export default (state = INITIAL_STATE, action) => {
           }
         }
       }
+    case 'update_tags':
+      return {
+        ...state,
+        messages: {
+          ...state.messages,
+          [action.id]: {
+            ...state.messages[action.id],
+            tags: action.tags
+          }
+        }
+      };
     default:
       return state;
   }

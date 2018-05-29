@@ -21,3 +21,11 @@ export const newTag = (id, tag) => {
     tag
   }
 };
+
+export const refreshTags = (id, tags) => {
+  return {
+    type: 'update_tags',
+    id,
+    tags
+  }
+}

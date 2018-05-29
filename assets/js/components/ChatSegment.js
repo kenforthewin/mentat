@@ -40,7 +40,6 @@ class ChatSegment extends Component {
 
   scrollDown() {
     if (this.scrolledDown) {
-      console.log('scrolling bruh')
       this.chatSegment.scrollTop = this.chatSegment.scrollHeight - this.chatSegment.clientHeight;
     }
   }
