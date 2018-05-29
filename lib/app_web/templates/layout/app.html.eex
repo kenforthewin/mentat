@@ -5,8 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes"> 
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="description" content="Group chat with tags.">
+    <meta name="author" content="Kenny Bergquist">
+    <link rel="manifest" href="/js/manifest.json">
     <title>Scalar</title>
   </head>
   <body style="height: 100%; overflow: hidden; background-color:whitesmoke;">
