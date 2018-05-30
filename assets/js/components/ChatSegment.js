@@ -62,6 +62,7 @@ class ChatSegment extends Component {
             handleNewTagOnMessage={this.props.handleNewTagOnMessage}
             scrollDown={this.scrollDown}
             urlData={message.urlData}
+            removeMessageTag={this.props.removeMessageTag}
             />
       )
     });

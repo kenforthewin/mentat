@@ -16,6 +16,6 @@ defmodule App.User do
   def changeset(user, attrs) do
     user
     |> cast(attrs, [:name, :team_id, :uuid])
-    |> validate_required([:name, :team_id, :uuid])
+    |> validate_required([:uuid])
   end
 end

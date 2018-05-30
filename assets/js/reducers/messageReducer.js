@@ -50,6 +50,17 @@ export default (state = INITIAL_STATE, action) => {
           }
         }
       };
+    case 'remove_tag':
+      return {
+        ...state,
+        messages: {
+          ...state.messages,
+          [action.id]: {
+            ...state.messages[action.id],
+            tags: state.messages[action.id].tags.filter(e => e !== action.tag)
+          }
+        }
+      };
     default:
       return state;
   }

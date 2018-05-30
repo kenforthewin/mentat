@@ -29,3 +29,11 @@ export const refreshTags = (id, tags) => {
     tags
   }
 }
+
+export const removeTag = (id, tag) => {
+  return {
+    type: 'remove_tag',
+    id,
+    tag
+  }
+}

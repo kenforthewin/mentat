@@ -17,5 +17,7 @@ defmodule App.Tag do
     tag
     |> cast(attrs, [:name, :team_id])
     |> validate_required([:name, :team_id])
+    |> validate_length(:name, min: 1)
+    |> unique_constraint(:name, name: :tags_name_team_id_index)
   end
 end

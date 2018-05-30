@@ -17,5 +17,6 @@ defmodule App.Message do
     message
     |> cast(attrs, [:body, :team_id, :user_id, :url_data])
     |> validate_required([:body, :team_id, :user_id])
+    |> validate_length(:body, min: 1)
   end
 end

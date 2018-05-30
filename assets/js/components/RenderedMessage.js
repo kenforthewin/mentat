@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Comment, Label, Dropdown, Input} from 'semantic-ui-react'
+import {Comment, Label, Dropdown, Input, Icon} from 'semantic-ui-react'
 import { Link } from 'react-router-dom';
 import EmojiConvertor from 'emoji-js';
 import Linkify from 'react-linkify'

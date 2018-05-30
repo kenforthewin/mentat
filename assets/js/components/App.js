@@ -13,7 +13,7 @@ import MainMenuDropdown from './MainMenuDropdown';
 import TagsDropdown from './TagsDropdown';
 import MessageForm from './MessageForm';
 import UserModal from './UserModal';
-import {addMessage,newUrl,newTag,refreshTags} from '../actions/messageActions';
+import {addMessage,newUrl,newTag,refreshTags,removeTag} from '../actions/messageActions';
 
 let openpgp =  require('openpgp');
 
@@ -49,6 +49,7 @@ class App extends Component {
     this.maybeNotify = this.maybeNotify.bind(this);
     this.cachedMessage = this.cachedMessage.bind(this);
     this.displayedMessages = this.displayedMessages.bind(this);
+    this.removeMessageTag = this.removeMessageTag.bind(this);
 
     this.nameInput = React.createRef();
     this.colorInput = React.createRef();
@@ -174,6 +175,10 @@ class App extends Component {
       })
     });
 
+    this.channel.on("remove_tag", payload => {
+      this.props.removeTag(payload.id, payload.tag);
+    });
+
     this.channel.on("new_msg", payload => {
       let tags = this.state.tagOptions;
       let postMessage = false;
@@ -238,6 +243,10 @@ class App extends Component {
       }).receive("error", resp => { console.log("Unable to join", resp) });
 
     this.setupNotifications();
+  }
+
+  removeMessageTag(id, tag) {
+    this.channel.push("remove_tag", {id, tag});
   }
 
   maybeNotify(message) {
@@ -427,7 +436,9 @@ class App extends Component {
   }
 
   dropdownOptions() {
-    return this.state.tagOptions.map(t => { return({text: t, value: t});});
+    return this.state.tagOptions
+        .filter(e => e)
+        .map(t => { return({text: t, value: t});});
   }
 
   onModalClose(e) {
@@ -589,6 +600,7 @@ class App extends Component {
             typingLabelContent={this.typingLabelContent()} 
             handleNewTagOnMessage={this.handleNewTagOnMessage}
             messageIds={this.state.messageIds}
+            removeMessageTag={this.removeMessageTag}
             />
             
         <MessageForm
@@ -605,6 +617,7 @@ const mapDispatchToProps = (dispatch) => {
   return {
     refreshTags: (id, tags) => dispatch(refreshTags(id, tags)),
     newTag: (id, tag) => dispatch(newTag(id, tag)),
+    removeTag: (id, tag) => dispatch(removeTag(id, tag)),
     newUrl: (id, urlData) => dispatch(newUrl(id, urlData)),
     addMessage: (message) => dispatch(addMessage(message)),
     updateName: (name, color) => dispatch(updateName(name, color)),

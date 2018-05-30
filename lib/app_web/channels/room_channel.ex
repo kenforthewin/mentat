@@ -9,7 +9,7 @@ defmodule AppWeb.RoomChannel do
   def join("room:" <> private_room_id, %{"tags" => tags, "uuid" => uuid, "color" => color}, socket) do
     team = Repo.one(from t in Team, where: t.name == ^private_room_id)
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team.id, select: t.id)
-    user = Repo.one(from u in User, where: u.uuid == ^uuid) || Repo.insert!(%User{uuid: uuid, color: color})
+    user = Repo.one(from u in User, where: u.uuid == ^uuid) || Repo.insert!(User.changeset(%User{}, %{uuid: uuid, color: color}))
 
     messages = case length(tag_ids) do
       0 -> Repo.all(from m in Message, where: m.team_id == ^team.id, order_by: [desc: m.inserted_at], limit: 15)
@@ -36,6 +36,17 @@ defmodule AppWeb.RoomChannel do
     {:reply, {:ok, %{messages: rendered_messages}}, socket}
   end
 
+  def handle_in("remove_tag", %{"id" => id, "tag" => tag}, socket) do
+    team_id = socket.assigns.team_id
+    tag_id = Repo.one(from t in Tag, where: t.name == ^tag and t.team_id == ^team_id, select: t.id)
+    message_tag = Repo.one(from m in MessageTag, where: m.message_id == ^id and m.tag_id == ^tag_id)
+    if message_tag do
+      Repo.delete message_tag
+    end
+    broadcast! socket, "remove_tag", %{id: id, tag: tag}
+    {:reply, {:ok, %{}}, socket}
+  end
+
   def handle_in("new_msg", %{"uuid" => uuid, "room" => team, "tags" => tags, "text" => text, "urls" => urls}, socket) do
     # TODO run a set of validations on message here:
     #### 3. Each tag has string length > 0
@@ -43,11 +54,11 @@ defmodule AppWeb.RoomChannel do
     user = Repo.one(from u in User, where: u.uuid == ^uuid)
     team_id = socket.assigns.team_id
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
-    Enum.each(tags, fn(t) -> if !Enum.any?(tag_ids, fn(i) -> i.name == t end), do: Repo.insert!(%Tag{team_id: team_id, name: t}) end)
-    message = Repo.insert!(%Message{body: text, team_id: team_id, user_id: user.id})
+    Enum.each(tags, fn(t) -> if !Enum.any?(tag_ids, fn(i) -> i.name == t end), do: Repo.insert!(Tag.changeset(%Tag{}, %{team_id: team_id, name: t})) end)
+    message = Repo.insert!(Message.changeset(%Message{}, %{body: text, team_id: team_id, user_id: user.id}))
     broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team, id: message.id, uuid: uuid}
     final_tags = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
-    Enum.each(final_tags, fn(t) -> Repo.insert!(%MessageTag{message_id: message.id, tag_id: t.id}) end)
+    Enum.each(final_tags, fn(t) -> Repo.insert!(MessageTag.changeset(%MessageTag{}, %{message_id: message.id, tag_id: t.id})) end)
     rendered_url = cond do
       urls |> Enum.any? ->
         url = Enum.at(urls, 0)
@@ -71,7 +82,7 @@ defmodule AppWeb.RoomChannel do
       true ->
         %{show: false}
     end
-    message = Ecto.Changeset.change(message, %{url_data: rendered_url})
+    message = Message.changeset(message, %{url_data: rendered_url})
     message = Repo.update!(message)
     if rendered_url.show do
       broadcast! socket, "new_url_data", %{id: message.id, url_data: rendered_url}
@@ -82,7 +93,7 @@ defmodule AppWeb.RoomChannel do
   def handle_in("new_tags", %{"tags" => tags}, socket) do
     team_id = socket.assigns.team_id
     current_tags = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
-    Enum.each(tags, fn(t) -> if !Enum.any?(current_tags, fn(i) -> i.name == t end), do: Repo.insert!(%Tag{team_id: team_id, name: t}) end)
+    Enum.each(tags, fn(t) -> if !Enum.any?(current_tags, fn(i) -> i.name == t end), do: Repo.insert!(Tag.changeset(%Tag{}, %{team_id: team_id, name: t})) end)
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id, select: t.id)
     messages = case length(tag_ids) do
       0 -> Repo.all(from m in Message, where: m.team_id == ^team_id, order_by: [desc: m.inserted_at], limit: 15)
@@ -97,13 +108,16 @@ defmodule AppWeb.RoomChannel do
     team_id = socket.assigns.team_id
     tag = Repo.one(from t in Tag, where: t.team_id == ^team_id and t.name == ^new_tag)
     if !tag do
-      tag = Repo.insert!(%Tag{team_id: team_id, name: new_tag})
-      Repo.insert!(%MessageTag{message_id: id, tag_id: tag.id})
+      tag = Tag.changeset(%Tag{}, %{team_id: team_id, name: new_tag})
+      tag = Repo.insert! tag
+      message_tag = MessageTag.changeset(%MessageTag{}, %{message_id: id, tag_id: tag.id})
+      Repo.insert!(message_tag)
       broadcast! socket, "new_message_tag", %{id: id, new_tag: new_tag}
     else
       message_tag = Repo.one(from t in MessageTag, where: t.tag_id == ^tag.id and t.message_id == ^id)
       if !message_tag do
-        Repo.insert!(%MessageTag{message_id: id, tag_id: tag.id})
+        message_tag = MessageTag.changeset(%MessageTag{}, %{message_id: id, tag_id: tag.id})
+        Repo.insert!(message_tag)
         broadcast! socket, "new_message_tag", %{id: id, new_tag: new_tag}
       end
     end
@@ -112,7 +126,7 @@ defmodule AppWeb.RoomChannel do
 
   def handle_in("new_name", %{"uuid" => uuid, "name" => name, "color" => color}, socket) do
     user = Repo.one(from u in User, where: u.uuid == ^uuid)
-    user = Ecto.Changeset.change(user, %{name: name, color: color})
+    user = User.changeset(user, %{name: name, color: color})
     Repo.update!(user)
     broadcast! socket, "new_name", %{ name: name, uuid: uuid, color: color }
     {:noreply, socket}
@@ -132,7 +146,7 @@ defmodule AppWeb.RoomChannel do
     team_id = socket.assigns.team_id
     team = Repo.one(from t in Team, where: t.id == ^team_id)
     if (!team.claim_uuid) do
-      team = Ecto.Changeset.change(team, %{claim_uuid: uuid})
+      team = Team.changeset(team, %{claim_uuid: uuid})
       Repo.update!(team)
       broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: true}
     else
