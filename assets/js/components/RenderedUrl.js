@@ -9,6 +9,10 @@ export default class RenderedText extends Component {
     this.maybeRenderImage = this.maybeRenderImage.bind(this);
   }
 
+  componentDidMount() {
+    this.props.scrollDown();
+  }
+
   maybeRenderImage(url) {
     if(url && url.startsWith('https')) {
       return (
@@ -23,13 +27,13 @@ export default class RenderedText extends Component {
     const data = this.props.urlData;
     if(data.content_type.startsWith('image')) {
       return (
-        <Card as='a' href={data.url} rel="nofollow" target="_">
+        <Card as='a' href={data.url} rel="nofollow" target="_blank">
           {this.maybeRenderImage(data.url)}
         </Card>
       );
     } else if (data.content_type.startsWith('text/html')) {
       return (
-        <Card as='a' href={data.url} rel="nofollow" target="_">
+        <Card as='a' href={data.url} rel="nofollow" target="_blank">
           {this.maybeRenderImage(data.image)}
           <Card.Content>
             <Card.Header>

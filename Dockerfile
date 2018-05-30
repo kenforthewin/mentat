@@ -48,7 +48,7 @@ RUN cp /app/assets/node_modules/openpgp/dist/openpgp.worker.min.js /app/priv/sta
 RUN cp /app/assets/node_modules/openpgp/dist/openpgp.min.js /app/priv/static/js
 
 
-COPY ./manifest.json ./priv/static/js/
+COPY ./manifest.json ./priv/static/
 COPY ./react-logo.png ./priv/static/images/
 COPY ./ ./
 RUN export MIX_ENV=prod && mix compile --force

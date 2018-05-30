@@ -45,7 +45,7 @@ export default class RenderedMessage extends Component {
               {labels}
             </Comment.Metadata>
           <Comment.Text style={{fontSize: '16px'}}>
-            <Linkify>
+            <Linkify properties={{target: '_blank', rel: "nofollow"}}>
               {emojiText}
             </Linkify>
             {this.maybeRenderUrl()}

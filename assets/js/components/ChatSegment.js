@@ -26,9 +26,9 @@ class ChatSegment extends Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if ((prevProps.messageIds !== this.props.messageIds && this.props.messageIds.length > 0) || prevProps.typingLabelVisible !== this.props.typingLabelVisible) {
+    if (((prevProps.messageIds !== this.props.messageIds && this.props.messageIds.length > 0) || prevProps.typingLabelVisible !== this.props.typingLabelVisible)) {
       const node = this.chatSegment;
-      if (this.props.updateType === 'append') {
+      if (this.props.updateType === 'append' && this.scrolledDown) {
         node.scrollTop = node.scrollHeight - node.clientHeight;
       }
       else if (this.props.updateType === 'prepend') {
@@ -70,13 +70,13 @@ class ChatSegment extends Component {
   handleScroll(e) {
     const node = this.chatSegment;
     this.scrolledDown = node.scrollTop === node.scrollHeight - node.clientHeight;
-    if (!this.props.lastMessageLoaded && !this.props.loadingMessages && node.scrollTop === 0 && this.props.messages.length > 0) {
-      this.props.loadMoreMessages(node);
+    if (this.props.loadingMessages) {
+      e.preventDefault()
+      return false;
     }
-  }
-
-  scrollOnStart = () => {
-    this.chatSegment.scrollTop = this.chatSegment.scrollHeight - this.chatSegment.clientHeight;
+    if (!this.props.lastMessageLoaded && !this.props.loadingMessages && node.scrollTop === 0 && this.props.messages.length > 0) {
+      this.props.loadMoreMessages();
+    }
   }
 
   render() {

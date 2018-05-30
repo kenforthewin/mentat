@@ -7,7 +7,7 @@ module.exports = {
   output: {
     filename: "app.js",
     path: "/app/priv/static/js",
-    publicPath: "/assets/"
+    publicPath: "/"
   },
   plugins: [
     new SWPrecacheWebpackPlugin({
@@ -31,7 +31,7 @@ module.exports = {
       },
       minify: true,
       // For unknown URLs, fallback to the index page
-      navigateFallback: process.env.PUBLIC_URL + '/index.html',
+      navigateFallback: '/',
       // Ignores URLs starting from /__ (useful for Firebase):
       // https://github.com/facebookincubator/create-react-app/issues/2237#issuecomment-302693219
       navigateFallbackWhitelist: [/^(?!\/__).*/],

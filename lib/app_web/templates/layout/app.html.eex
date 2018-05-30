@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes"> 
     <meta name="description" content="Group chat with tags.">
     <meta name="author" content="Kenny Bergquist">
-    <link rel="manifest" href="/js/manifest.json">
+    <link rel="manifest" href="/manifest.json">
     <title>Scalar</title>
   </head>
   <body style="height: 100%; overflow: hidden; background-color:whitesmoke;">
