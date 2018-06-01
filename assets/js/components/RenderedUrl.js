@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Comment, Card, Image} from 'semantic-ui-react';
+import {Comment, Card, Image, Item} from 'semantic-ui-react';
 import moment from 'moment';
 import TimeAgo from 'react-timeago'
 
@@ -13,10 +13,12 @@ export default class RenderedText extends Component {
     this.props.scrollDown();
   }
 
-  maybeRenderImage(url) {
+  maybeRenderImage(url, image = false) {
     if(url && url.startsWith('https')) {
+      const size = image ? 'large' : 'medium'
       return (
-        <Image src={url} onLoad={this.props.scrollDown} />
+        // <Image src={url} onLoad={this.props.scrollDown} />
+        <Item.Image size={size} src={url} onLoad={this.props.scrollDown} />
       );
     }
 
@@ -27,23 +29,24 @@ export default class RenderedText extends Component {
     const data = this.props.urlData;
     if(data.content_type.startsWith('image')) {
       return (
-        <Card as='a' href={data.url} rel="nofollow" target="_blank">
-          {this.maybeRenderImage(data.url)}
-        </Card>
+        <Item.Group>
+          <Item as='a' href={data.url} rel="nofollow" target="_blank">
+            {this.maybeRenderImage(data.url, true)}
+          </Item>
+        </Item.Group>
       );
     } else if (data.content_type.startsWith('text/html')) {
       return (
-        <Card as='a' href={data.url} rel="nofollow" target="_blank">
-          {this.maybeRenderImage(data.image)}
-          <Card.Content>
-            <Card.Header>
-              {data.title}
-            </Card.Header>
-            <Card.Description>
-              {data.description}
-            </Card.Description>
-          </Card.Content>
-        </Card>
+        <Item.Group>
+          <Item as='a' href={data.url} rel="nofollow" target="_blank">
+            {this.maybeRenderImage(data.image)}
+            <Item.Content >
+              <Item.Header>{data.title}</Item.Header>
+              <Item.Description>{data.description}</Item.Description>
+            </Item.Content>
+          </Item>
+        </Item.Group>
+
       );
     }
 

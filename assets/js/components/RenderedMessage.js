@@ -17,10 +17,7 @@ export default class RenderedMessage extends Component {
 
   maybeRenderUrl() {
     if (this.props.urlData && this.props.urlData.show) {
-      return [
-        <br key={0}/>,
-        <RenderedUrl urlData={this.props.urlData} key={1} scrollDown={this.props.scrollDown}/>
-      ];
+      return <RenderedUrl urlData={this.props.urlData} key={1} scrollDown={this.props.scrollDown}/>
     }
 
     return null;
