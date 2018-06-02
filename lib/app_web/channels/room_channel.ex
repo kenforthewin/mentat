@@ -18,7 +18,13 @@ defmodule AppWeb.RoomChannel do
 
     messages = Repo.preload messages, [:tags, :user]
     rendered_messages = MessageView.render("index.json", %{messages: messages})
-    tags = Repo.all(from t in Tag, where: t.team_id == ^team.id)
+    tags = Repo.all(
+      from t in Tag, 
+      join: m in MessageTag, 
+      where: t.team_id == ^team.id and m.tag_id == t.id, 
+      select: %{name: t.name, message_count: count(m.id)},
+      group_by: t.name,
+      order_by: [desc: count(m.id)])
     rendered_tags = TagView.render("index.json", %{tags: tags})
     send(self(), :after_join)
     {:ok, %{messages: rendered_messages, tags: rendered_tags, name: user.name, color: user.color}, assign(socket, :team_id, team.id)}
@@ -48,17 +54,14 @@ defmodule AppWeb.RoomChannel do
   end
 
   def handle_in("new_msg", %{"uuid" => uuid, "room" => team, "tags" => tags, "text" => text, "urls" => urls}, socket) do
-    # TODO run a set of validations on message here:
-    #### 3. Each tag has string length > 0
-
     user = Repo.one(from u in User, where: u.uuid == ^uuid)
     team_id = socket.assigns.team_id
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
     Enum.each(tags, fn(t) -> if !Enum.any?(tag_ids, fn(i) -> i.name == t end), do: Repo.insert!(Tag.changeset(%Tag{}, %{team_id: team_id, name: t})) end)
     message = Repo.insert!(Message.changeset(%Message{}, %{body: text, team_id: team_id, user_id: user.id}))
-    broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team, id: message.id, uuid: uuid}
     final_tags = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
     Enum.each(final_tags, fn(t) -> Repo.insert!(MessageTag.changeset(%MessageTag{}, %{message_id: message.id, tag_id: t.id})) end)
+    broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team, id: message.id, uuid: uuid}
     rendered_url = cond do
       urls |> Enum.any? ->
         url = Enum.at(urls, 0)
@@ -86,6 +89,17 @@ defmodule AppWeb.RoomChannel do
     message = Repo.update!(message)
     if rendered_url.show do
       broadcast! socket, "new_url_data", %{id: message.id, url_data: rendered_url}
+    end
+    if Enum.any? final_tags do
+      tags = Repo.all(
+        from t in Tag, 
+        join: m in MessageTag, 
+        where: t.team_id == ^team_id and m.tag_id == t.id, 
+        select: %{name: t.name, message_count: count(m.id)},
+        group_by: t.name,
+        order_by: [desc: count(m.id)])
+      rendered_tags = TagView.render("index.json", %{tags: tags})
+      broadcast! socket, "new_tag_counts", %{tagCounts: tags}
     end
     {:reply, {:ok, %{}}, socket}
   end

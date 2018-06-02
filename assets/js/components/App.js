@@ -25,7 +25,20 @@ class App extends Component {
     this.typing = false;
     this.privKeyObj = null;
     this.pubKeyObj = null;
-    this.state = { messageIds: [], messages: [], tags: [], tagOptions: [], modalOpen: !this.props.userReducer.name || this.props.userReducer.name.length < 1, updateType: 'append', lastMessageLoaded: false, presences: {}, typing: [], requests: {}, messagesLoading: true };
+    this.state = { 
+      messageIds: [], 
+      messages: [], 
+      tags: [], 
+      tagOptions: [],
+      tagCounts: {},
+      modalOpen: !this.props.userReducer.name || this.props.userReducer.name.length < 1, 
+      updateType: 'append', 
+      lastMessageLoaded: false, 
+      presences: {}, 
+      typing: [], 
+      requests: {}, 
+      messagesLoading: true };
+
     this.room = props.match.params.room
 
     this.handleMessage = this.handleMessage.bind(this);
@@ -109,6 +122,15 @@ class App extends Component {
         ...this.state,
         requests: filteredRequests
       })
+    });
+
+    this.channel.on("new_tag_counts", payload => {
+      const tagCounts = {};
+      payload.tagCounts.forEach((e) => tagCounts[e.name] = e.message_count);
+      this.setState({
+        ...this.state,
+        tagCounts
+      });
     });
 
     this.channel.on("new_name", payload => {
@@ -282,10 +304,13 @@ class App extends Component {
   }
 
   getTags(tags) {
+    const tagCounts = {};
+    tags.forEach((e) => tagCounts[e.name] = e.message_count);
     this.setState({
       ...this.state,
-      tagOptions: tags.map(t => t.name)
-    })
+      tagOptions: tags.map(t => t.name),
+      tagCounts
+    });
   }
 
   displayedMessages() {
@@ -437,8 +462,7 @@ class App extends Component {
 
   dropdownOptions() {
     return this.state.tagOptions
-        .filter(e => e)
-        .map(t => { return({text: t, value: t});});
+        .map(t => { return({text: t, value: t, description: this.state.tagCounts[t]});});
   }
 
   onModalClose(e) {
@@ -546,6 +570,8 @@ class App extends Component {
       const newTag = e.target.value;
       this.channel.push("new_message_tag", {id, newTag})
       e.target.value = '';
+    } else if (e.key === " ") {
+      e.preventDefault();
     }
   }
 
@@ -582,6 +608,7 @@ class App extends Component {
               dismissRequest={this.dismissRequest} />
           <TagsDropdown
               tags={this.state.tags}
+              tagCounts={this.state.tagCounts}
               dropdownOptions={this.dropdownOptions}
               updateTags={this.updateTags}
           />

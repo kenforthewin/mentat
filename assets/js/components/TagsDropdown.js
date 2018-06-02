@@ -4,7 +4,6 @@ import {Dropdown} from 'semantic-ui-react'
 export default class OnlineUsersDropdown extends Component {
   constructor(props) {
     super(props);
-
   }
 
   render() {

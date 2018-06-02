@@ -6,7 +6,6 @@ export default class OnlineUsersDropdown extends Component {
     super(props);
     this.renderOnlineUsers = this.renderOnlineUsers.bind(this);
     this.onlineCount = this.onlineCount.bind(this);
-
   }
 
   renderOnlineUsers() {
@@ -44,19 +43,18 @@ export default class OnlineUsersDropdown extends Component {
 
   render() {
     return (
-    <span  style={{flex: '0 1 auto', marginRight: '10px'}}> {this.onlineCount()} {' '}
-
-      <Dropdown icon='users' size='large' direction='right' content='1' inline>
-        <Dropdown.Menu>
-          <Dropdown.Header content='Online Now' />
-          <Dropdown.Divider />
-          {this.renderOnlineUsers()}
-          <Dropdown.Header content='Requests' />
-          <Dropdown.Divider />
-          {this.renderRequests()}
-        </Dropdown.Menu>
-      </Dropdown>
-    </span>
+      <span  style={{flex: '0 1 auto', marginRight: '10px'}}> {this.onlineCount()} {' '}
+        <Dropdown icon='users' direction='right' >
+          <Dropdown.Menu>
+            <Dropdown.Header content='Online Now' />
+            <Dropdown.Divider />
+            {this.renderOnlineUsers()}
+            <Dropdown.Header content='Requests' />
+            <Dropdown.Divider />
+            {this.renderRequests()}
+          </Dropdown.Menu>
+        </Dropdown>
+      </span>
     );
   }
 }

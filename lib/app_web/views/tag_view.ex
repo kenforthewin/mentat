@@ -6,6 +6,6 @@ defmodule AppWeb.TagView do
   end
 
   def render("tag.json", %{tag: tag}) do
-    %{name: tag.name}
+    %{name: tag.name, message_count: tag.message_count}
   end
 end
