@@ -2,15 +2,17 @@ defmodule AppWeb.RoomChannel do
   use Phoenix.Channel
   import Ecto.Query
   require Logger
-  alias App.{Repo, Message, Tag, Team, MessageTag, User}
-  alias AppWeb.{MessageView, TagView, Presence}
+  alias App.{Repo, Message, Tag, Team, MessageTag, User, Request}
+  alias AppWeb.{MessageView, TagView, RequestView, Presence}
   alias Scrape.Website
 
   def join("room:" <> private_room_id, %{"tags" => tags, "uuid" => uuid, "color" => color}, socket) do
     team = Repo.one(from t in Team, where: t.name == ^private_room_id)
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team.id, select: t.id)
     user = Repo.one(from u in User, where: u.uuid == ^uuid) || Repo.insert!(User.changeset(%User{}, %{uuid: uuid, color: color}))
-
+    requests = Repo.all(from r in Request, where: r.team_id == ^team.id and is_nil(r.encrypted_team_private_key))
+    requests = Repo.preload requests, :user
+    rendered_requests = RequestView.render("index.json", %{requests: requests})
     messages = case length(tag_ids) do
       0 -> Repo.all(from m in Message, where: m.team_id == ^team.id, order_by: [desc: m.inserted_at], limit: 15)
       _ -> Repo.all(from m in Message, join: t in MessageTag, on:  m.id == t.message_id, where: m.team_id == ^team.id and t.tag_id in ^tag_ids, order_by: [desc: m.inserted_at], limit: 15, distinct: true )
@@ -27,7 +29,7 @@ defmodule AppWeb.RoomChannel do
       order_by: [desc: count(m.id)])
     rendered_tags = TagView.render("index.json", %{tags: tags})
     send(self(), :after_join)
-    {:ok, %{messages: rendered_messages, tags: rendered_tags, name: user.name, color: user.color}, assign(socket, :team_id, team.id)}
+    {:ok, %{requests: rendered_requests, messages: rendered_messages, tags: rendered_tags, name: user.name, color: user.color}, assign(socket, :team_id, team.id)}
   end
 
   def handle_in("more_messages", %{"id" => id, "tags" => tags}, socket) do
@@ -152,6 +154,10 @@ defmodule AppWeb.RoomChannel do
   end
 
   def handle_in("approve_request", %{"encryptedGroupPrivateKey" => encrypted_group_private_key, "uuid" => uuid, "groupPublicKey" => group_public_key}, socket) do
+    team_id = socket.assigns.team_id
+    user = Repo.one(from u in User, where: u.uuid == ^uuid)
+    request = Repo.one(from r in Request, where: r.team_id == ^team_id and r.user_id == ^user.id)
+    request = Repo.update!(Request.changeset(request, %{encrypted_team_private_key: encrypted_group_private_key, team_public_key: group_public_key}))
     broadcast! socket, "approve_request", %{uuid: uuid, encrypted_group_private_key: encrypted_group_private_key, group_public_key: group_public_key}
     {:noreply, socket}
   end
@@ -159,6 +165,7 @@ defmodule AppWeb.RoomChannel do
   def handle_in("new_claim_or_invite", %{"uuid" => uuid, "name" => name, "publicKey" => public_key}, socket) do
     team_id = socket.assigns.team_id
     team = Repo.one(from t in Team, where: t.id == ^team_id)
+    user = Repo.one(from u in User, where: u.uuid == ^uuid)
     if (!team.claim_uuid) do
       team = Team.changeset(team, %{claim_uuid: uuid})
       Repo.update!(team)
@@ -167,7 +174,8 @@ defmodule AppWeb.RoomChannel do
       if team.claim_uuid == uuid do
         broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: true}
       else
-        broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: false, name: name, public_key: public_key}
+        request = Repo.one(from r in Request, where: r.user_id == ^user.id and r.team_id == ^team_id) || Repo.insert!(Request.changeset(%Request{}, %{user_public_key: public_key, user_id: user.id, team_id: team_id}))
+        broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: false, name: name, public_key: public_key, encrypted_private_key: request.encrypted_team_private_key, group_public_key: request.team_public_key }
       end
     end
     {:noreply, socket}

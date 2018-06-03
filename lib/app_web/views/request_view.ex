@@ -1,0 +1,11 @@
+defmodule AppWeb.RequestView do
+  use AppWeb, :view
+
+  def render("index.json", %{requests: requests}) do
+    %{requests: render_many(requests, AppWeb.RequestView, "request.json")}
+  end
+
+  def render("request.json", %{request: request}) do
+    %{user_public_key: request.user_public_key, uuid: request.user.uuid, name: request.user.name}
+  end
+end

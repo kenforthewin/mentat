@@ -163,18 +163,22 @@ class App extends Component {
       if (payload.claimed && payload.uuid === this.props.userReducer.uuid) {
         this.props.generateGroupKeypair(this.room)
       } else if (!payload.claimed){
-        const newRequests = Object.keys(this.state.requests).includes(payload.uuid) ? this.state.requests : {
-          ...this.state.requests,
-          [payload.uuid]: {
-            uuid: payload.uuid,
-            name: payload.name,
-            publicKey: payload.public_key
+        if (payload.encrypted_private_key) {
+          this.props.receiveGroupKeypair(this.room, payload.group_public_key, payload.encrypted_private_key);
+        } else {
+          const newRequests = Object.keys(this.state.requests).includes(payload.uuid) ? this.state.requests : {
+            ...this.state.requests,
+            [payload.uuid]: {
+              uuid: payload.uuid,
+              name: payload.name,
+              publicKey: payload.public_key
+            }
           }
+          this.setState({
+            ...this.state,
+            requests: newRequests
+          })
         }
-        this.setState({
-          ...this.state,
-          requests: newRequests
-        })
       }
     });
 
@@ -256,6 +260,14 @@ class App extends Component {
           this.initializeMessages(resp.messages.messages);
           this.props.updateName(resp.name, resp.color);
           this.getTags(resp.tags.tags);
+          const newRequests = {};
+          resp.requests.requests.forEach(e => {
+            newRequests[e.uuid] = {uuid: e.uuid, name: e.name, publicKey: e.user_public_key}
+          });
+          this.setState({
+            ...this.state,
+            requests: newRequests
+          });
         } else if (!this.props.cryptoReducer.publicKey) {
             this.props.generateKeypair();
         }
