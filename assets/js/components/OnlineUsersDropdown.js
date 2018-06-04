@@ -29,11 +29,13 @@ export default class OnlineUsersDropdown extends Component {
     return Object.values(requests).map((r, i) => {
       return (
         <Dropdown.Item key={i} >
-          <Form size='mini'>
+          <Form >
             <Form.Group inline>
               <Item content={r.name} style={{ marginRight: '10px' }}/>
-              <Button size='mini' onClick={this.props.approveRequest} data-uuid={r.uuid} data-public-key={r.publicKey} compact>Yes</Button>
-              <Button size='mini' onClick={this.props.dismissRequest} data-uuid={r.uuid} compact>No</Button>
+              <span>
+                <Button size='mini' onClick={this.props.approveRequest} data-uuid={r.uuid} data-public-key={r.publicKey} compact>Yes</Button>
+                <Button size='mini' onClick={this.props.dismissRequest} data-uuid={r.uuid} compact>No</Button>
+              </span>
             </Form.Group>
           </Form>
         </Dropdown.Item>
