@@ -1,6 +1,5 @@
 const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
 
-
 module.exports = {
   mode: "development",
   entry: ["babel-polyfill", "/app/assets/js/app.js"],
@@ -8,6 +7,11 @@ module.exports = {
     filename: "app.js",
     path: "/app/priv/static/js",
     publicPath: "/"
+  },
+  resolve: {
+    alias: {
+      '../../theme.config$': '/app/assets/theme/theme.config'
+    }
   },
   plugins: [
     new SWPrecacheWebpackPlugin({
@@ -58,6 +62,10 @@ module.exports = {
           'style-loader',
           'css-loader'
         ]
+      },
+      {
+        use: ['style-loader', 'css-loader', 'less-loader'],
+        test: /\.less$/
       },
       {
         test: /\.(woff|woff2|ttf|eot|svg)(\?v=[a-z0-9]\.[a-z0-9]\.[a-z0-9])?$/, use: ['url-loader?limit=100000']
