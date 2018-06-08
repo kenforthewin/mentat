@@ -14,6 +14,7 @@ import TagsDropdown from './TagsDropdown';
 import MessageForm from './MessageForm';
 import UserModal from './UserModal';
 import {addMessage,newUrl,newTag,refreshTags,removeTag} from '../actions/messageActions';
+import {addUser, setLastSynced} from '../actions/usersAction';
 
 let openpgp =  require('openpgp');
 
@@ -63,9 +64,12 @@ class App extends Component {
     this.cachedMessage = this.cachedMessage.bind(this);
     this.displayedMessages = this.displayedMessages.bind(this);
     this.removeMessageTag = this.removeMessageTag.bind(this);
+    this.encryptBlob = this.encryptBlob.bind(this);
+    this.syncUsers = this.syncUsers.bind(this);
 
     this.nameInput = React.createRef();
     this.colorInput = React.createRef();
+    // this.avatarInput = React.createRef();
 
     this.pgpWorkerStarted = openpgp.initWorker({ path:'/js/openpgp.worker.min.js' })
 
@@ -97,7 +101,7 @@ class App extends Component {
   componentDidMount() {
     let socket = new Socket("/socket", {params: {token: window.userToken, uuid: this.props.userReducer.uuid}});
     socket.connect();
-    this.channel = socket.channel(`room:${this.room}`, {tags: this.state.tags, uuid: this.props.userReducer.uuid, color: this.props.userReducer.color});
+    this.channel = socket.channel(`room:${this.room}`, {tags: this.state.tags, uuid: this.props.userReducer.uuid, color: this.props.userReducer.color, lastSynced: this.props.usersReducer.lastSynced});
 
     this.channel.on("presence_state", state => {
       this.setState({
@@ -236,10 +240,7 @@ class App extends Component {
     });
 
     this.channel.on("new_url_data", payload => {
-      // const cachedMessage = this.cachedMessage(payload.id);
-      // if (cachedMessage) {
-        this.props.newUrl(payload.id, payload.url_data);
-      // }
+      this.props.newUrl(payload.id, payload.url_data);
     });
 
     this.channel.on("new_message_tag", payload => {
@@ -268,6 +269,7 @@ class App extends Component {
             ...this.state,
             requests: newRequests
           });
+          this.syncUsers(resp.users.users);
         } else if (!this.props.cryptoReducer.publicKey) {
             this.props.generateKeypair();
         }
@@ -277,6 +279,29 @@ class App extends Component {
       }).receive("error", resp => { console.log("Unable to join", resp) });
 
     this.setupNotifications();
+  }
+
+  async syncUsers(users) {
+
+            console.log(users)
+
+    const now = moment().format();
+    this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
+    await Promise.all(users.map(async (user, i) => {
+      if (user.avatar) {
+        const options = {
+          message: openpgp.message.readArmored(user.avatar),
+          privateKeys: [this.privKeyObj]
+        };
+        const decryption = await openpgp.decrypt(options);
+        const decryptedUser = {
+          ...user,
+          avatar: decryption.data
+        }
+        this.props.addUser(decryptedUser);
+      }
+    }));
+    this.props.setLastSynced(now);
   }
 
   removeMessageTag(id, tag) {
@@ -292,6 +317,23 @@ class App extends Component {
         var notification = new Notification(message.name, {body: message.text});
       }
     }
+  }
+
+  encryptBlob(blob) {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64data = reader.result;                
+      this.pubKeyObj = this.pubKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].publicKey).keys
+      const options = {
+        data: base64data,
+        publicKeys: this.pubKeyObj,
+        armored: true
+      };
+      openpgp.encrypt(options).then((ciphertext) => {
+        this.avatarInput = ciphertext.data;
+      })
+    }
+    reader.readAsDataURL(blob); 
   }
 
   setupNotifications() {
@@ -332,13 +374,14 @@ class App extends Component {
   }
 
   async initializeMessages(messages) {
+    console.log(messages)
     this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
     await Promise.all(messages.map(async (m, i) => {
       const cachedMessage = this.cachedMessage(m.id);
       if (!cachedMessage) {
         const options = {
-          message: openpgp.message.readArmored(m.body),     // parse armored message
-          privateKeys: [this.privKeyObj]                            // for decryption
+          message: openpgp.message.readArmored(m.body),
+          privateKeys: [this.privKeyObj]
         };
         const decryption = await openpgp.decrypt(options)
         const newMessage = {urlData: m.url_data, id: m.id, name: m.user.name, color: m.user.color, text: decryption.data, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)}
@@ -480,7 +523,9 @@ class App extends Component {
   onModalClose(e) {
     const name = this.nameInput.current.value;
     const color = this.colorInput.current.value;
-    this.channel.push("new_name", {name, color, uuid: this.props.userReducer.uuid});
+    const avatar = this.avatarInput;
+    this.channel.push("new_name", {name, color, uuid: this.props.userReducer.uuid, avatar: avatar});
+    this.avatarInput = null;
     this.props.updateName(name, color)
     this.setState({
       ...this.state,
@@ -610,7 +655,9 @@ class App extends Component {
             colorInput={this.colorInput}
             nameInput={this.nameInput}
             color={this.props.userReducer.color}
-            onModalClose={this.onModalClose} />
+            onModalClose={this.onModalClose} 
+            encryptBlob={this.encryptBlob} 
+            avatarInput={this.avatarInput} />
         <Loader active={this.state.messagesLoading} />
         <div style={{flex: 0, display: 'flex', minHeight: '2.71428571em', alignItems: 'center'}}>
           <OnlineUsersDropdown 
@@ -649,11 +696,13 @@ class App extends Component {
 }
 
 const mapStateToProps = (state) => {
-  const { userReducer, cryptoReducer, messageReducer } = state;
-  return { userReducer, cryptoReducer, messageReducer };
+  const { userReducer, usersReducer, cryptoReducer, messageReducer } = state;
+  return { userReducer, cryptoReducer, messageReducer, usersReducer };
 }
 const mapDispatchToProps = (dispatch) => {
   return {
+    setLastSynced: (lastSynced) => dispatch(setLastSynced(lastSynced)),
+    addUser: (user) => dispatch(addUser(user)),
     refreshTags: (id, tags) => dispatch(refreshTags(id, tags)),
     newTag: (id, tag) => dispatch(newTag(id, tag)),
     removeTag: (id, tag) => dispatch(removeTag(id, tag)),

@@ -16,9 +16,7 @@
     }
   },
   "dependencies": {
-    "emoji-js": "^3.4.0",
     "emoji-mart": "^2.6.1",
-    "html-extractor": "^0.2.2",
     "huebee": "^2.0.0",
     "moment": "^2.22.1",
     "openpgp": "^3.0.9",
@@ -38,7 +36,6 @@
     "semantic-ui-less": "^2.3.1",
     "semantic-ui-react": "^0.79.1",
     "twitter-text": "^2.0.4",
-    "url-loader": "^1.0.1",
     "uuid": "^3.2.1"
   },
   "devDependencies": {
@@ -65,6 +62,7 @@
     "style-loader": "^0.20.3",
     "sw-precache-webpack-plugin": "^0.11.5",
     "uglify-js-brunch": "2.10.0",
+    "url-loader": "^1.0.1",
     "webpack": "^4.5.0",
     "webpack-cli": "^2.0.14",
     "webpack-dev-server": "^3.1.3",

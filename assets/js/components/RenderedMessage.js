@@ -34,7 +34,7 @@ export default class RenderedMessage extends Component {
     const emojiText = this.emoji.replace_colons(this.props.text);
     const comment = (
       <Comment key={0}>
-        <Comment.Avatar style={{ backgroundColor: this.props.color, height: '2.5em'}}/>
+        <Comment.Avatar style={{ backgroundColor: this.props.color, height: '3em', width: '3em'}}/>
           <Comment.Content>
             <Comment.Author as='a'>{this.props.name}</Comment.Author>
             <Comment.Metadata>

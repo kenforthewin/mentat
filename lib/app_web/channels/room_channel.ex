@@ -3,10 +3,10 @@ defmodule AppWeb.RoomChannel do
   import Ecto.Query
   require Logger
   alias App.{Repo, Message, Tag, Team, MessageTag, User, Request}
-  alias AppWeb.{MessageView, TagView, RequestView, Presence}
+  alias AppWeb.{MessageView, TagView, RequestView, Presence, UserView}
   alias Scrape.Website
 
-  def join("room:" <> private_room_id, %{"tags" => tags, "uuid" => uuid, "color" => color}, socket) do
+  def join("room:" <> private_room_id, %{"tags" => tags, "uuid" => uuid, "color" => color, "lastSynced" => last_synced}, socket) do
     team = Repo.one(from t in Team, where: t.name == ^private_room_id)
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team.id, select: t.id)
     user = Repo.one(from u in User, where: u.uuid == ^uuid) || Repo.insert!(User.changeset(%User{}, %{uuid: uuid, color: color}))
@@ -29,7 +29,12 @@ defmodule AppWeb.RoomChannel do
       order_by: [desc: count(m.id)])
     rendered_tags = TagView.render("index.json", %{tags: tags})
     send(self(), :after_join)
-    {:ok, %{requests: rendered_requests, messages: rendered_messages, tags: rendered_tags, name: user.name, color: user.color}, assign(socket, :team_id, team.id)}
+    users = case last_synced do
+      nil -> Repo.all(from u in User, join: r in Request, where: r.user_id == u.id and r.team_id == ^team.id and not is_nil(r.encrypted_team_private_key))
+      _ -> Repo.all(from u in User, join: r in Request, where: r.user_id == u.id and r.team_id == ^team.id and not is_nil(r.encrypted_team_private_key) and u.updated_at > ^last_synced)
+    end
+    rendered_users = UserView.render("index.json", %{users: users})
+    {:ok, %{users: rendered_users, requests: rendered_requests, messages: rendered_messages, tags: rendered_tags, name: user.name, color: user.color}, assign(socket, :team_id, team.id)}
   end
 
   def handle_in("more_messages", %{"id" => id, "tags" => tags}, socket) do
@@ -63,7 +68,7 @@ defmodule AppWeb.RoomChannel do
     message = Repo.insert!(Message.changeset(%Message{}, %{body: text, team_id: team_id, user_id: user.id}))
     final_tags = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
     Enum.each(final_tags, fn(t) -> Repo.insert!(MessageTag.changeset(%MessageTag{}, %{message_id: message.id, tag_id: t.id})) end)
-    broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team, id: message.id, uuid: uuid}
+    broadcast! socket, "new_msg", %{text: text, name: user.name, avatar: user.avatar, color: user.color, tags: tags, room: team, id: message.id, uuid: uuid}
     rendered_url = cond do
       urls |> Enum.any? ->
         url = Enum.at(urls, 0)
@@ -140,11 +145,11 @@ defmodule AppWeb.RoomChannel do
     {:reply, {:ok, %{}}, socket}
   end
 
-  def handle_in("new_name", %{"uuid" => uuid, "name" => name, "color" => color}, socket) do
+  def handle_in("new_name", %{"uuid" => uuid, "name" => name, "color" => color, "avatar" => avatar}, socket) do
     user = Repo.one(from u in User, where: u.uuid == ^uuid)
-    user = User.changeset(user, %{name: name, color: color})
+    user = User.changeset(user, %{name: name, color: color, avatar: avatar})
     Repo.update!(user)
-    broadcast! socket, "new_name", %{ name: name, uuid: uuid, color: color }
+    broadcast! socket, "new_name", %{ name: name, uuid: uuid, color: color, avatar: avatar}
     {:noreply, socket}
   end
 
@@ -169,6 +174,7 @@ defmodule AppWeb.RoomChannel do
     if (!team.claim_uuid) do
       team = Team.changeset(team, %{claim_uuid: uuid})
       Repo.update!(team)
+      Repo.insert!(Request.changeset(%Request{}, %{user_public_key: public_key, user_id: user.id, team_id: team_id, encrypted_team_private_key: "(claimed)"}))
       broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: true}
     else
       if team.claim_uuid == uuid do

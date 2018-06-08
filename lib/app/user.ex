@@ -7,6 +7,7 @@ defmodule App.User do
     field :name, :string
     field :uuid, :string
     field :color, :string
+    field :avatar, :string
     belongs_to :team, App.Team
     has_many :messages, App.Message
     timestamps()
@@ -15,7 +16,7 @@ defmodule App.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:name, :team_id, :uuid])
+    |> cast(attrs, [:name, :team_id, :uuid, :color, :avatar])
     |> validate_required([:uuid])
   end
 end
