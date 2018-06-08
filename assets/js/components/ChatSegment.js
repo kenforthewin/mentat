@@ -63,6 +63,7 @@ class ChatSegment extends Component {
             scrollDown={this.scrollDown}
             urlData={message.urlData}
             removeMessageTag={this.props.removeMessageTag}
+            user={this.props.usersReducer.users[message.uuid]}
             />
       )
     });

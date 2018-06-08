@@ -44,7 +44,7 @@ export const generateGroupKeypair = (room) => {
   }
 }
 
-export const receiveGroupKeypair = (room, publicKey, encryptedPrivateKey) => {
+export const receiveGroupKeypair = (room, publicKey, encryptedPrivateKey, users = []) => {
   return (dispatch, getState) => {
     const state = getState();
     var privKeyObj = openpgp.key.readArmored(state.cryptoReducer.privateKey).keys[0];
@@ -54,11 +54,27 @@ export const receiveGroupKeypair = (room, publicKey, encryptedPrivateKey) => {
         privateKeys: [privKeyObj]
       };
       openpgp.decrypt(options).then((plaintext) => {
-        return dispatch({
+        dispatch({
           type: 'new_group_key',
           privateKey: plaintext.data,
           publicKey,
           room
+        });
+        const groupPrivateKey = openpgp.key.readArmored(plaintext.data).keys[0];
+        users.forEach((user) => {
+          if (user.avatar) {
+            const groupOptions = {
+              privateKeys: [groupPrivateKey],
+              message: openpgp.message.readArmored(user.avatar)
+            }
+            openpgp.decrypt(groupOptions).then((plaintext) => {
+              const addUser = {
+                ...user,
+                avatar: plaintext.data
+              };
+              dispatch({type: 'add_user', user: addUser})
+            });
+          }
         });
       });
     });

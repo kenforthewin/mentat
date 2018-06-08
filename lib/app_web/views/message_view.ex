@@ -18,6 +18,6 @@ defmodule AppWeb.MessageView do
   end
 
   def render("message_user.json", user) do
-    %{name: user.message.name, color: user.message.color}
+    %{name: user.message.name, color: user.message.color, uuid: user.message.uuid}
   end
 end

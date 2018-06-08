@@ -153,6 +153,14 @@ defmodule AppWeb.RoomChannel do
     {:noreply, socket}
   end
 
+  def handle_in("new_name", %{"uuid" => uuid, "name" => name, "color" => color}, socket) do
+    user = Repo.one(from u in User, where: u.uuid == ^uuid)
+    user = User.changeset(user, %{name: name, color: color})
+    Repo.update!(user)
+    broadcast! socket, "new_name", %{ name: name, uuid: uuid, color: color}
+    {:noreply, socket}
+  end
+
   def handle_in("new_typing", %{"uuid" => uuid, "typing" => typing}, socket) do
     broadcast! socket, "new_typing", %{uuid: uuid, typing: typing}
     {:noreply, socket}
@@ -163,7 +171,10 @@ defmodule AppWeb.RoomChannel do
     user = Repo.one(from u in User, where: u.uuid == ^uuid)
     request = Repo.one(from r in Request, where: r.team_id == ^team_id and r.user_id == ^user.id)
     request = Repo.update!(Request.changeset(request, %{encrypted_team_private_key: encrypted_group_private_key, team_public_key: group_public_key}))
-    broadcast! socket, "approve_request", %{uuid: uuid, encrypted_group_private_key: encrypted_group_private_key, group_public_key: group_public_key}
+    users = Repo.all(from u in User, join: r in Request, where: r.user_id == u.id and r.team_id == ^team_id and not is_nil(r.encrypted_team_private_key))
+    rendered_users = UserView.render("index.json", %{users: users})
+
+    broadcast! socket, "approve_request", %{uuid: uuid, encrypted_group_private_key: encrypted_group_private_key, group_public_key: group_public_key, users: rendered_users}
     {:noreply, socket}
   end
 

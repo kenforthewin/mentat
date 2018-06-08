@@ -14,7 +14,7 @@ defmodule App.Team do
   @doc false
   def changeset(team, attrs) do
     team
-    |> cast(attrs, [:name])
+    |> cast(attrs, [:name, :claim_uuid])
     |> validate_required([:name])
   end
 end

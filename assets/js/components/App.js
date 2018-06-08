@@ -119,7 +119,7 @@ class App extends Component {
 
     this.channel.on("approve_request", payload => {
       if (payload.uuid === this.props.userReducer.uuid && !this.props.cryptoReducer.groups[this.room]) {
-        this.props.receiveGroupKeypair(this.room, payload.group_public_key, payload.encrypted_group_private_key);
+        this.props.receiveGroupKeypair(this.room, payload.group_public_key, payload.encrypted_group_private_key, payload.users.users);
       }
       let {[payload.uuid]: _, ...filteredRequests} = this.state.requests;
       this.setState({
@@ -161,6 +161,9 @@ class App extends Component {
           }
         }
       })
+      if (payload.avatar) {
+        this.syncUsers([payload]);
+      }
     });
 
     this.channel.on("new_claim_or_invite", payload => {
@@ -282,9 +285,6 @@ class App extends Component {
   }
 
   async syncUsers(users) {
-
-            console.log(users)
-
     const now = moment().format();
     this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
     await Promise.all(users.map(async (user, i) => {
@@ -331,6 +331,7 @@ class App extends Component {
       };
       openpgp.encrypt(options).then((ciphertext) => {
         this.avatarInput = ciphertext.data;
+        this.onModalClose();
       })
     }
     reader.readAsDataURL(blob); 
@@ -374,7 +375,6 @@ class App extends Component {
   }
 
   async initializeMessages(messages) {
-    console.log(messages)
     this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
     await Promise.all(messages.map(async (m, i) => {
       const cachedMessage = this.cachedMessage(m.id);
@@ -384,7 +384,7 @@ class App extends Component {
           privateKeys: [this.privKeyObj]
         };
         const decryption = await openpgp.decrypt(options)
-        const newMessage = {urlData: m.url_data, id: m.id, name: m.user.name, color: m.user.color, text: decryption.data, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)}
+        const newMessage = {uuid: m.user.uuid, urlData: m.url_data, id: m.id, name: m.user.name, color: m.user.color, text: decryption.data, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)}
         this.props.addMessage(newMessage);
       } else {
         this.props.refreshTags(m.id, m.tags.map(t => t.name));
@@ -623,7 +623,6 @@ class App extends Component {
   handleNewTagOnMessage(e, id) {
     if (e.key === "Enter") {
       e.preventDefault();
-      console.log(e);
       const newTag = e.target.value;
       this.channel.push("new_message_tag", {id, newTag})
       e.target.value = '';
@@ -657,7 +656,9 @@ class App extends Component {
             color={this.props.userReducer.color}
             onModalClose={this.onModalClose} 
             encryptBlob={this.encryptBlob} 
-            avatarInput={this.avatarInput} />
+            avatarInput={this.avatarInput}
+            showAvatar={!!this.props.cryptoReducer.groups[this.room]}
+            currentUser={this.props.usersReducer.users[this.props.userReducer.uuid]} />
         <Loader active={this.state.messagesLoading} />
         <div style={{flex: 0, display: 'flex', minHeight: '2.71428571em', alignItems: 'center'}}>
           <OnlineUsersDropdown 
@@ -687,6 +688,7 @@ class App extends Component {
             handleNewTagOnMessage={this.handleNewTagOnMessage}
             messageIds={this.state.messageIds}
             removeMessageTag={this.removeMessageTag}
+            usersReducer={this.props.usersReducer}
             />
             
         <MessageForm
@@ -711,7 +713,7 @@ const mapDispatchToProps = (dispatch) => {
     updateName: (name, color) => dispatch(updateName(name, color)),
     generateKeypair: () => dispatch(generateKeypair()),
     generateGroupKeypair: (room) => dispatch(generateGroupKeypair(room)),
-    receiveGroupKeypair: (room, publicKey, encryptedPrivateKey) => dispatch(receiveGroupKeypair(room, publicKey, encryptedPrivateKey))
+    receiveGroupKeypair: (room, publicKey, encryptedPrivateKey, users = []) => dispatch(receiveGroupKeypair(room, publicKey, encryptedPrivateKey, users))
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(App);

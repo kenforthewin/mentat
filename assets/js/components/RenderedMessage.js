@@ -12,12 +12,21 @@ export default class RenderedMessage extends Component {
   constructor(props) {
     super(props);
     this.maybeRenderUrl = this.maybeRenderUrl.bind(this);
+    this.maybeRenderAvatar = this.maybeRenderAvatar.bind(this);
     this.emoji = new EmojiConvertor();
   }
 
   maybeRenderUrl() {
     if (this.props.urlData && this.props.urlData.show) {
       return <RenderedUrl urlData={this.props.urlData} key={1} scrollDown={this.props.scrollDown}/>
+    }
+
+    return null;
+  }
+
+  maybeRenderAvatar() {
+    if (this.props.user && this.props.user.avatar) {
+      return this.props.user.avatar
     }
 
     return null;
@@ -34,10 +43,10 @@ export default class RenderedMessage extends Component {
     const emojiText = this.emoji.replace_colons(this.props.text);
     const comment = (
       <Comment key={0}>
-        <Comment.Avatar style={{ backgroundColor: this.props.color, height: '3em', width: '3em'}}/>
+        <Comment.Avatar style={{ backgroundColor: this.props.color, height: '3.0em', width: '3.0em'}} src={this.maybeRenderAvatar()}/>
           <Comment.Content>
-            <Comment.Author as='a'>{this.props.name}</Comment.Author>
-            <Comment.Metadata>
+            <Comment.Author as='a' style={{fontSize: '16px'}}>{this.props.name}</Comment.Author>
+            <Comment.Metadata style={{fontSize: '12px'}}>
               <TimeAgo date={moment.utc(this.props.timestamp)} minPeriod={15}/>
               {labels}
             </Comment.Metadata>
