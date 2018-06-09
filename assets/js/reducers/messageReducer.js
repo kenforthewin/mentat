@@ -61,6 +61,8 @@ export default (state = INITIAL_STATE, action) => {
           }
         }
       };
+    case 'burn_browser':
+      return INITIAL_STATE;
     default:
       return state;
   }

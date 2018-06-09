@@ -14,6 +14,8 @@ export default (state = INITIAL_STATE, action) => {
         name: action.name,
         color: action.color
       }
+    case 'burn_browser':
+      return INITIAL_STATE;
     default:
       return state;
   }

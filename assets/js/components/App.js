@@ -15,10 +15,11 @@ import MessageForm from './MessageForm';
 import UserModal from './UserModal';
 import {addMessage,newUrl,newTag,refreshTags,removeTag} from '../actions/messageActions';
 import {addUser, setLastSynced} from '../actions/usersAction';
+import {persistor} from '../reducers/index';
 
 let openpgp =  require('openpgp');
 
-import { generateKeypair, generateGroupKeypair, receiveGroupKeypair } from '../actions/cryptoActions';
+import { generateKeypair, generateGroupKeypair, receiveGroupKeypair, burnBrowser } from '../actions/cryptoActions';
 
 class App extends Component {
   constructor(props) {
@@ -615,7 +616,7 @@ class App extends Component {
   renderGate() {
     return (
       <Modal basic open={true} closeOnDimmerClick={false} size='small'>
-        <Header icon='user circle' content='You dont yet have access to this group.' />
+        <Header icon='user circle' content='You dont have access to this group.' />
       </Modal>
     )
   }
@@ -673,7 +674,8 @@ class App extends Component {
               updateTags={this.updateTags}
           />
           <MainMenuDropdown
-              changeName={() => this.setState({...this.state, modalOpen: true})} />
+              changeName={() => this.setState({...this.state, modalOpen: true})} 
+              burnBrowser={this.props.burnBrowser}/>
         </div>
         <ChatSegment
             messages={this.displayedMessages()} 
@@ -703,6 +705,7 @@ const mapStateToProps = (state) => {
 }
 const mapDispatchToProps = (dispatch) => {
   return {
+    burnBrowser: () => persistor.purge() && dispatch(burnBrowser()),
     setLastSynced: (lastSynced) => dispatch(setLastSynced(lastSynced)),
     addUser: (user) => dispatch(addUser(user)),
     refreshTags: (id, tags) => dispatch(refreshTags(id, tags)),

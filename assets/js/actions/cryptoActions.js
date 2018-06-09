@@ -1,6 +1,12 @@
 let openpgp =  require('openpgp');
 import randomWords from 'random-words';
 
+export const burnBrowser = () => {
+  return {
+    type: 'burn_browser'
+  }
+}
+
 export const generateKeypair = () => {
   return (dispatch, getState) => {
     const passphrase = randomWords({ exactly: 10, join: ' ' })

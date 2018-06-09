@@ -13,6 +13,8 @@ export default (state = { lastSynced: null, users: {} }, action) => {
         ...state,
         lastSynced: action.lastSynced
       }
+    case 'burn_browser':
+      return INITIAL_STATE;
     default:
       return state;
   }

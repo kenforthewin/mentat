@@ -2,10 +2,7 @@ const INITIAL_STATE = {
   publicKey: null,
   privateKey: null,
   passphrase: null,
-  groups: {
-    // publicKey: null,
-    // privateKey: null, 
-  }
+  groups: { }
 }
 
 export default (state = INITIAL_STATE, action) => {
@@ -28,6 +25,8 @@ export default (state = INITIAL_STATE, action) => {
           }
         }
       }
+    case 'burn_browser':
+      return INITIAL_STATE;
     default:
       return state;
   }
