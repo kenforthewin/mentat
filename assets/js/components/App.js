@@ -120,7 +120,7 @@ class App extends Component {
 
     this.channel.on("approve_request", payload => {
       if (payload.uuid === this.props.userReducer.uuid && !this.props.cryptoReducer.groups[this.room]) {
-        this.props.receiveGroupKeypair(this.room, payload.group_public_key, payload.encrypted_group_private_key, payload.users.users);
+        this.props.receiveGroupKeypair(this.room, payload.group_public_key, payload.encrypted_group_private_key, payload.users.requests);
       }
       let {[payload.uuid]: _, ...filteredRequests} = this.state.requests;
       this.setState({
@@ -267,13 +267,15 @@ class App extends Component {
           this.getTags(resp.tags.tags);
           const newRequests = {};
           resp.requests.requests.forEach(e => {
-            newRequests[e.uuid] = {uuid: e.uuid, name: e.name, publicKey: e.user_public_key}
+            if (!e.encrypted_team_private_key) {
+              newRequests[e.uuid] = {uuid: e.uuid, name: e.name, publicKey: e.user_public_key}
+            }
           });
           this.setState({
             ...this.state,
             requests: newRequests
           });
-          this.syncUsers(resp.users.users);
+          this.syncUsers(resp.requests.requests);
         } else if (!this.props.cryptoReducer.publicKey) {
             this.props.generateKeypair();
         }

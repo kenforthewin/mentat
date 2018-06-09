@@ -6,6 +6,6 @@ defmodule AppWeb.RequestView do
   end
 
   def render("request.json", %{request: request}) do
-    %{user_public_key: request.user_public_key, uuid: request.user.uuid, name: request.user.name}
+    %{encrypted_team_private_key: request.encrypted_team_private_key, user_public_key: request.user_public_key, uuid: request.user.uuid, name: request.user.name, avatar: request.avatar}
   end
 end

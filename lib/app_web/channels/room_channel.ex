@@ -10,14 +10,13 @@ defmodule AppWeb.RoomChannel do
     team = Repo.one(from t in Team, where: t.name == ^private_room_id)
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team.id, select: t.id)
     user = Repo.one(from u in User, where: u.uuid == ^uuid) || Repo.insert!(User.changeset(%User{}, %{uuid: uuid, color: color}))
-    requests = Repo.all(from r in Request, where: r.team_id == ^team.id and is_nil(r.encrypted_team_private_key))
+    requests = Repo.all(from r in Request, where: r.team_id == ^team.id)
     requests = Repo.preload requests, :user
     rendered_requests = RequestView.render("index.json", %{requests: requests})
     messages = case length(tag_ids) do
       0 -> Repo.all(from m in Message, where: m.team_id == ^team.id, order_by: [desc: m.inserted_at], limit: 15)
       _ -> Repo.all(from m in Message, join: t in MessageTag, on:  m.id == t.message_id, where: m.team_id == ^team.id and t.tag_id in ^tag_ids, order_by: [desc: m.inserted_at], limit: 15, distinct: true )
     end
-
     messages = Repo.preload messages, [:tags, :user]
     rendered_messages = MessageView.render("index.json", %{messages: messages})
     tags = Repo.all(
@@ -29,12 +28,7 @@ defmodule AppWeb.RoomChannel do
       order_by: [desc: count(m.id)])
     rendered_tags = TagView.render("index.json", %{tags: tags})
     send(self(), :after_join)
-    users = case last_synced do
-      nil -> Repo.all(from u in User, join: r in Request, where: r.user_id == u.id and r.team_id == ^team.id and not is_nil(r.encrypted_team_private_key))
-      _ -> Repo.all(from u in User, join: r in Request, where: r.user_id == u.id and r.team_id == ^team.id and not is_nil(r.encrypted_team_private_key) and u.updated_at > ^last_synced)
-    end
-    rendered_users = UserView.render("index.json", %{users: users})
-    {:ok, %{users: rendered_users, requests: rendered_requests, messages: rendered_messages, tags: rendered_tags, name: user.name, color: user.color}, assign(socket, :team_id, team.id)}
+    {:ok, %{requests: rendered_requests, messages: rendered_messages, tags: rendered_tags, name: user.name, color: user.color}, assign(socket, :team_id, team.id)}
   end
 
   def handle_in("more_messages", %{"id" => id, "tags" => tags}, socket) do
@@ -68,7 +62,7 @@ defmodule AppWeb.RoomChannel do
     message = Repo.insert!(Message.changeset(%Message{}, %{body: text, team_id: team_id, user_id: user.id}))
     final_tags = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
     Enum.each(final_tags, fn(t) -> Repo.insert!(MessageTag.changeset(%MessageTag{}, %{message_id: message.id, tag_id: t.id})) end)
-    broadcast! socket, "new_msg", %{text: text, name: user.name, avatar: user.avatar, color: user.color, tags: tags, room: team, id: message.id, uuid: uuid}
+    broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team, id: message.id, uuid: uuid}
     rendered_url = cond do
       urls |> Enum.any? ->
         url = Enum.at(urls, 0)
@@ -146,9 +140,11 @@ defmodule AppWeb.RoomChannel do
   end
 
   def handle_in("new_name", %{"uuid" => uuid, "name" => name, "color" => color, "avatar" => avatar}, socket) do
+    team_id = socket.assigns.team_id
     user = Repo.one(from u in User, where: u.uuid == ^uuid)
-    user = User.changeset(user, %{name: name, color: color, avatar: avatar})
-    Repo.update!(user)
+    Repo.update!(User.changeset(user, %{name: name, color: color}))
+    request = Repo.one(from r in Request, where: r.team_id == ^team_id and r.user_id == ^user.id)
+    Repo.update!(Request.changeset(request, %{avatar: avatar}))
     broadcast! socket, "new_name", %{ name: name, uuid: uuid, color: color, avatar: avatar}
     {:noreply, socket}
   end
@@ -171,10 +167,11 @@ defmodule AppWeb.RoomChannel do
     user = Repo.one(from u in User, where: u.uuid == ^uuid)
     request = Repo.one(from r in Request, where: r.team_id == ^team_id and r.user_id == ^user.id)
     request = Repo.update!(Request.changeset(request, %{encrypted_team_private_key: encrypted_group_private_key, team_public_key: group_public_key}))
-    users = Repo.all(from u in User, join: r in Request, where: r.user_id == u.id and r.team_id == ^team_id and not is_nil(r.encrypted_team_private_key))
-    rendered_users = UserView.render("index.json", %{users: users})
+    requests = Repo.all(from r in Request, where: r.team_id == ^team_id)
+    requests = Repo.preload requests, :user
+    rendered_requests = RequestView.render("index.json", %{requests: requests})
 
-    broadcast! socket, "approve_request", %{uuid: uuid, encrypted_group_private_key: encrypted_group_private_key, group_public_key: group_public_key, users: rendered_users}
+    broadcast! socket, "approve_request", %{uuid: uuid, encrypted_group_private_key: encrypted_group_private_key, group_public_key: group_public_key, users: rendered_requests}
     {:noreply, socket}
   end
 

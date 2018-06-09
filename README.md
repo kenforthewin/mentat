@@ -14,7 +14,24 @@ Right now, it's the user's responsibility to use a secure device that only she h
 
 ## Features
 
+- End-to-end encryption by default
+- Deeply embedded tagging system
+- Link previews
+- Web notifications
+
 ## Stack
+
+- fully containerized
+
+### Server
+
+- Phoenix/Elixir
+- Postgres
+
+### Client
+
+- React/Redux
+- OpenPGP.js
 
 ## Development
 
