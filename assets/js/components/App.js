@@ -71,6 +71,7 @@ class App extends Component {
     this.nameInput = React.createRef();
     this.colorInput = React.createRef();
     // this.avatarInput = React.createRef();
+    this.textAreaNode = React.createRef();
 
     this.pgpWorkerStarted = openpgp.initWorker({ path:'/js/openpgp.worker.min.js' })
 
@@ -442,7 +443,7 @@ class App extends Component {
     }
 
     if (e.key === "Enter") {
-      e.preventDefault()
+      e.preventDefault();
       this.typing = false;
       clearTimeout(this.typeTimeout);
       this.channel.push("new_typing", {uuid: this.props.userReducer.uuid, typing: false});
@@ -473,6 +474,7 @@ class App extends Component {
           this.channel.push("new_msg", {urls: urls, text: encrypted, uuid: this.props.userReducer.uuid, tags: allTags, room: this.room});
         });
         e.target.value = '';
+        e.target.style.height = '41px';
       }
     } 
     // else if ((e.key === "Spacebar" || e.key === " ") && e.target.value && e.target.value[0] === '#' && !e.target.value.includes("\w")) {
@@ -696,7 +698,8 @@ class App extends Component {
             />
             
         <MessageForm
-            handleMessage={this.handleMessage} />
+            handleMessage={this.handleMessage} 
+            textAreaNode={this.textAreaNode}/>
       </div> );
   }
 }

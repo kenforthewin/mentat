@@ -9,15 +9,10 @@ export default class RenderedText extends Component {
     this.maybeRenderImage = this.maybeRenderImage.bind(this);
   }
 
-  componentDidMount() {
-    this.props.scrollDown();
-  }
-
   maybeRenderImage(url, image = false) {
     if(url && url.startsWith('https')) {
-      const size = image ? 'large' : 'medium'
+      const size = image ? 'large' : 'small'
       return (
-        // <Image src={url} onLoad={this.props.scrollDown} />
         <Item.Image size={size} src={url} onLoad={this.props.scrollDown} />
       );
     }

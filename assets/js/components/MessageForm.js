@@ -7,21 +7,21 @@ export default class MessageForm extends Component {
   constructor(props) {
     super(props);
     this.state = { pickerVisible: false }
-    this.textAreaNode = React.createRef();
 
     this.maybeRenderPicker = this.maybeRenderPicker.bind(this);
     this.addEmoji = this.addEmoji.bind(this);
     this.togglePicker = this.togglePicker.bind(this);
 
     this.formStyles = {
-      flex: '0',
-      marginBottom: '30px',
+      // flex: '0 1 auto',
+      marginBottom: '15px',
       // display: 'flex', 
       // alignItems: 'center',
-      height: '100%',
-      minHeight: '2.71428571em'
+      // height: '100%',
+      // minHeight: '2.71428571em'
     }
   }
+
   maybeRenderPicker() {
     // if (!this.state.pickerVisible) return;
 
@@ -51,10 +51,10 @@ export default class MessageForm extends Component {
   render() {
     return (
       <Form style={this.formStyles}>
-        <TextArea rows={1}
+        <TextArea autoHeight rows={1}
           placeholder={"Enter your message"} 
           onKeyPress={this.props.handleMessage} 
-          ref={this.textAreaNode}
+          ref={this.props.textAreaNode}
           />
         <Icon name='star' onClick={this.togglePicker} style={{position: 'absolute', bottom: '5px', right: '5px', fontSize: '20px', zIndex: '10000'}} />
         {this.maybeRenderPicker()}

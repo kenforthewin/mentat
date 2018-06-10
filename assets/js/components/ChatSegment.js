@@ -26,7 +26,7 @@ class ChatSegment extends Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (((prevProps.messageIds !== this.props.messageIds && this.props.messageIds.length > 0) || prevProps.typingLabelVisible !== this.props.typingLabelVisible)) {
+    if (((prevProps.messageIds !== this.props.messageIds && this.props.messageIds.length > 0))) {
       const node = this.chatSegment;
       if (this.props.updateType === 'append' && this.scrolledDown) {
         node.scrollTop = node.scrollHeight - node.clientHeight;
@@ -64,6 +64,7 @@ class ChatSegment extends Component {
             urlData={message.urlData}
             removeMessageTag={this.props.removeMessageTag}
             user={this.props.usersReducer.users[message.uuid]}
+            style={{flex: '0 1 auto'}}
             />
       )
     });
@@ -85,16 +86,14 @@ class ChatSegment extends Component {
     return (
       <Ref innerRef={this.handleRef}>
         <Segment raised style={this.segmentStyles} onScroll={this.handleScroll}>
-          <div style={{width: '100%'}}>
-            <Comment.Group style={{ maxWidth: '100%' }}>
+            <Comment.Group style={{ maxWidth: '100%', minHeight: '100%', margin: '0 0 0 0', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
               {this.renderMessages()}
-              <div style={{ display: this.props.typingLabelVisible ? 'block' : 'none' }}>
-                {this.props.typingLabelContent}
-              </div>
             </Comment.Group>
-          </div>
+            <Label size='small' color="black" style={{ display: this.props.typingLabelVisible ? 'block' : 'none', bottom: '6em', marginLeft: 'auto', position: 'fixed' }}>
+              {this.props.typingLabelContent}
+            </Label>
         </Segment>
-        </Ref>
+      </Ref>
     );
   }
 }
