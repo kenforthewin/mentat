@@ -14,7 +14,7 @@ export default class MessageForm extends Component {
 
     this.formStyles = {
       // flex: '0 1 auto',
-      marginBottom: '15px',
+      marginBottom: '30px',
       // display: 'flex', 
       // alignItems: 'center',
       // height: '100%',
@@ -31,8 +31,8 @@ export default class MessageForm extends Component {
   }
 
   addEmoji(emoji) {
-    this.textAreaNode.current.ref.value = this.textAreaNode.current.ref.value + emoji.native;
-    this.textAreaNode.current.ref.focus();
+    this.props.textAreaNode.current.ref.value = this.props.textAreaNode.current.ref.value + emoji.native;
+    this.props.textAreaNode.current.ref.focus();
 
     this.setState({
       ...this.state,
@@ -56,7 +56,7 @@ export default class MessageForm extends Component {
           onKeyPress={this.props.handleMessage} 
           ref={this.props.textAreaNode}
           />
-        <Icon name='star' onClick={this.togglePicker} style={{position: 'absolute', bottom: '5px', right: '5px', fontSize: '20px', zIndex: '10000'}} />
+        <Icon name='plus' onClick={this.togglePicker} style={{position: 'absolute', bottom: '12px', right: '5px', fontSize: '20px', zIndex: '10000'}} />
         {this.maybeRenderPicker()}
       </Form>
     );
