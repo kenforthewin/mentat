@@ -5,6 +5,7 @@ defmodule App.Team do
   schema "teams" do
     field :name, :string
     field :claim_uuid, :string
+    field :nickname, :string
     has_many :users, App.User
     has_many :messages, App.Message
     has_many :tags, App.Tag
@@ -14,7 +15,7 @@ defmodule App.Team do
   @doc false
   def changeset(team, attrs) do
     team
-    |> cast(attrs, [:name, :claim_uuid])
+    |> cast(attrs, [:name, :claim_uuid, :nickname])
     |> validate_required([:name])
   end
 end

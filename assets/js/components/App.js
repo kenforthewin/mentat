@@ -1,12 +1,10 @@
 import React, { Component } from 'react'
-import { Segment, Form, TextArea, Container, Comment, Button, Rail, Icon, Dropdown, Label, Header, Modal, Popup, Transition, Item,Loader } from 'semantic-ui-react'
+import { Header, Modal, Loader } from 'semantic-ui-react'
 import { Socket, Presence } from "phoenix"
 import moment from 'moment'
 import ChatSegment from './ChatSegment';
 import { connect } from 'react-redux';
-import {updateName} from '../actions/userActions';
-import { Link } from 'react-router-dom';
-import Huebee from 'huebee';
+import {updateName, updateUrlPreviews} from '../actions/userActions';
 import twitter from 'twitter-text';
 import OnlineUsersDropdown from './OnlineUsersDropdown';
 import MainMenuDropdown from './MainMenuDropdown';
@@ -15,11 +13,11 @@ import MessageForm from './MessageForm';
 import UserModal from './UserModal';
 import {addMessage,newUrl,newTag,refreshTags,removeTag} from '../actions/messageActions';
 import {addUser, setLastSynced} from '../actions/usersAction';
+import { generateKeypair, generateGroupKeypair, receiveGroupKeypair, burnBrowser, newGroupName } from '../actions/cryptoActions';
 import {persistor} from '../reducers/index';
 
 let openpgp =  require('openpgp');
 
-import { generateKeypair, generateGroupKeypair, receiveGroupKeypair, burnBrowser } from '../actions/cryptoActions';
 
 class App extends Component {
   constructor(props) {
@@ -39,7 +37,8 @@ class App extends Component {
       presences: {}, 
       typing: [], 
       requests: {}, 
-      messagesLoading: true };
+      messagesLoading: true,
+      generatingGroupKey: false };
 
     this.room = props.match.params.room
 
@@ -67,6 +66,7 @@ class App extends Component {
     this.removeMessageTag = this.removeMessageTag.bind(this);
     this.encryptBlob = this.encryptBlob.bind(this);
     this.syncUsers = this.syncUsers.bind(this);
+    this.updateRoomSettings = this.updateRoomSettings.bind(this);
 
     this.nameInput = React.createRef();
     this.colorInput = React.createRef();
@@ -83,8 +83,12 @@ class App extends Component {
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (prevProps.cryptoReducer.groups[this.room] != this.props.cryptoReducer.groups[this.room] ) {
+    if (prevProps.cryptoReducer.groups[this.room] != this.props.cryptoReducer.groups[this.room] && this.props.cryptoReducer.groups[this.room].publicKey) {
       this.pushNewTags(this.state.tags);
+      this.setState({
+        ...this.state,
+        generatingGroupKey: false
+      })
     }
 
     if(!this.props.cryptoReducer.groups[this.room] && prevProps.userReducer.name !== this.props.userReducer.name) {
@@ -119,9 +123,13 @@ class App extends Component {
       });
     });
 
+    this.channel.on("update_room_name", payload => {
+      this.props.newGroupName(this.room, payload.name);
+    });
+
     this.channel.on("approve_request", payload => {
       if (payload.uuid === this.props.userReducer.uuid && !this.props.cryptoReducer.groups[this.room]) {
-        this.props.receiveGroupKeypair(this.room, payload.group_public_key, payload.encrypted_group_private_key, payload.users.requests);
+        this.props.receiveGroupKeypair(this.room, payload.group_public_key, payload.encrypted_group_private_key, payload.users.requests, payload.name);
       }
       let {[payload.uuid]: _, ...filteredRequests} = this.state.requests;
       this.setState({
@@ -170,6 +178,10 @@ class App extends Component {
 
     this.channel.on("new_claim_or_invite", payload => {
       if (payload.claimed && payload.uuid === this.props.userReducer.uuid) {
+        this.setState({
+          ...this.state,
+          generatingGroupKey: true
+        })
         this.props.generateGroupKeypair(this.room)
       } else if (!payload.claimed){
         if (payload.encrypted_private_key) {
@@ -277,12 +289,15 @@ class App extends Component {
             requests: newRequests
           });
           this.syncUsers(resp.requests.requests);
+          this.props.newGroupName(this.room, resp.roomName);
+
         } else if (!this.props.cryptoReducer.publicKey) {
             this.props.generateKeypair();
         }
         else {
           this.requestClaimOrInvite();
         }
+
       }).receive("error", resp => { console.log("Unable to join", resp) });
 
     this.setupNotifications();
@@ -391,7 +406,7 @@ class App extends Component {
         const newMessage = {uuid: m.user.uuid, urlData: m.url_data, id: m.id, name: m.user.name, color: m.user.color, text: decryption.data, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)}
         this.props.addMessage(newMessage);
       } else {
-        this.props.refreshTags(m.id, m.tags.map(t => t.name));
+        // this.props.refreshTags(m.id, m.tags.map(t => t.name));
       }
     }));
     if(messages.length === 0) {
@@ -461,7 +476,8 @@ class App extends Component {
           armored: false
         };
         let allTags = this.state.tags;
-        const urls = twitter.extractUrls(message).map((url) => url.startsWith('http') ? url : 'https://' + url);
+
+        const urls = this.props.userReducer.urlPreviews ? twitter.extractUrls(message).map((url) => url.startsWith('http') ? url : 'https://' + url) : [];
         extractedTags.forEach((extractedTag) => {
           allTags = allTags.includes(extractedTag) ? allTags : [
             ...allTags,
@@ -481,6 +497,11 @@ class App extends Component {
     //   e.preventDefault();
     //   this.processTagFromInput(e);
     // }
+  }
+
+  updateRoomSettings(roomName, urlPreviews) {
+    this.channel.push('update_room_name', {team_name: roomName});
+    this.props.updateUrlPreviews(urlPreviews);
   }
 
   processTagFromInput(e) {
@@ -620,7 +641,7 @@ class App extends Component {
   renderGate() {
     return (
       <Modal basic open={true} closeOnDimmerClick={false} size='small'>
-        <Header icon='user circle' content='You dont have access to this group.' />
+        <Header icon='user circle' content="You don't have access to this group." />
       </Modal>
     )
   }
@@ -645,10 +666,10 @@ class App extends Component {
   }
 
   render() {
-    if (!this.props.cryptoReducer.publicKey) {
+    if (!this.props.cryptoReducer.publicKey || this.state.generatingGroupKey) {
       return this.renderLoadingKey();
     }
-    else if (this.props.userReducer.name && this.props.userReducer.name.length > 1 && !this.props.cryptoReducer.groups[this.room]) {
+    else if (this.props.userReducer.name && this.props.userReducer.name.length > 1 && !(this.props.cryptoReducer.groups[this.room] &&this.props.cryptoReducer.groups[this.room].privateKey)) {
       return this.renderGate();
     }
     return (
@@ -679,7 +700,10 @@ class App extends Component {
           />
           <MainMenuDropdown
               changeName={() => this.setState({...this.state, modalOpen: true})} 
-              burnBrowser={this.props.burnBrowser}/>
+              burnBrowser={this.props.burnBrowser}
+              updateRoomSettings={this.updateRoomSettings}
+              generateUrls={this.props.userReducer.urlPreviews} 
+              currentName={this.props.cryptoReducer.groups[this.room] ? this.props.cryptoReducer.groups[this.room].nickname : ''} />
         </div>
         <ChatSegment
             messages={this.displayedMessages()} 
@@ -721,7 +745,9 @@ const mapDispatchToProps = (dispatch) => {
     updateName: (name, color) => dispatch(updateName(name, color)),
     generateKeypair: () => dispatch(generateKeypair()),
     generateGroupKeypair: (room) => dispatch(generateGroupKeypair(room)),
-    receiveGroupKeypair: (room, publicKey, encryptedPrivateKey, users = []) => dispatch(receiveGroupKeypair(room, publicKey, encryptedPrivateKey, users))
+    receiveGroupKeypair: (room, publicKey, encryptedPrivateKey, users = [], name = '') => dispatch(receiveGroupKeypair(room, publicKey, encryptedPrivateKey, users, name)),
+    updateUrlPreviews: (urlPreviews) => dispatch(updateUrlPreviews(urlPreviews)),
+    newGroupName: (room, nickname) => dispatch(newGroupName(room, nickname))
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(App);

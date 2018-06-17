@@ -1,12 +1,14 @@
 import React, {Component} from 'react';
-import {Comment, Card, Image, Item} from 'semantic-ui-react';
-import moment from 'moment';
-import TimeAgo from 'react-timeago'
+import { Item } from 'semantic-ui-react';
 
 export default class RenderedText extends Component {
   constructor(props) {
     super(props);
     this.maybeRenderImage = this.maybeRenderImage.bind(this);
+  }
+
+  componentDidMount() {
+    this.props.scrollDown();
   }
 
   maybeRenderImage(url, image = false) {

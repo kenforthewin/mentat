@@ -28,7 +28,16 @@ defmodule AppWeb.RoomChannel do
       order_by: [desc: count(m.id)])
     rendered_tags = TagView.render("index.json", %{tags: tags})
     send(self(), :after_join)
-    {:ok, %{requests: rendered_requests, messages: rendered_messages, tags: rendered_tags, name: user.name, color: user.color}, assign(socket, :team_id, team.id)}
+    {:ok, %{requests: rendered_requests, messages: rendered_messages, tags: rendered_tags, name: user.name, color: user.color, roomName: team.nickname}, assign(socket, :team_id, team.id)}
+  end
+
+  def handle_in("update_room_name", %{"team_name" => team_name}, socket) do
+    team_id = socket.assigns.team_id
+    team = Repo.one(from t in Team, where: t.id == ^team_id)
+
+    Repo.update!(Team.changeset(team, %{nickname: team_name}))
+    broadcast! socket, "update_room_name", %{name: team_name}
+    {:reply, {:ok, %{}}, socket}
   end
 
   def handle_in("more_messages", %{"id" => id, "tags" => tags}, socket) do
@@ -170,8 +179,8 @@ defmodule AppWeb.RoomChannel do
     requests = Repo.all(from r in Request, where: r.team_id == ^team_id)
     requests = Repo.preload requests, :user
     rendered_requests = RequestView.render("index.json", %{requests: requests})
-
-    broadcast! socket, "approve_request", %{uuid: uuid, encrypted_group_private_key: encrypted_group_private_key, group_public_key: group_public_key, users: rendered_requests}
+    team = Repo.one(from t in Team, where: t.id == ^team_id)
+    broadcast! socket, "approve_request", %{uuid: uuid, encrypted_group_private_key: encrypted_group_private_key, group_public_key: group_public_key, users: rendered_requests, name: team.nickname}
     {:noreply, socket}
   end
 

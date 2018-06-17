@@ -5,3 +5,10 @@ export const updateName = (name, color) => {
     color
   }
 }
+
+export const updateUrlPreviews = (urlPreviews) => {
+  return {
+    type: 'set_url_previews',
+    urlPreviews
+  }
+}

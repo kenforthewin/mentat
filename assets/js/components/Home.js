@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
-import { Segment, Button, Divider } from 'semantic-ui-react'
+import { Segment, Button, Header, Input, Icon } from 'semantic-ui-react'
 import { Link, Redirect } from 'react-router-dom';
 import uuidv1 from 'uuid/v1';
+import { connect } from 'react-redux';
 
 class Home extends Component {
   constructor(props) {
@@ -10,21 +11,19 @@ class Home extends Component {
     this.state = {buttonsDisabled: false, groupReady: false}
 
     this.generateGroup = this.generateGroup.bind(this);
+    this.redirectToGroup = this.redirectToGroup.bind(this);
+
+    this.inputGroupRef = React.createRef();
 
     this.containerStyles = {
       display: 'flex',
       height: '100%',
-      // flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center'
     }
 
     this.segmentStyles = {
-      // maxWidth: '50%',
-      flex: '1',
-      // display: 'flex',
-      // alignItems: 'center',
-      // justifyContent: 'center'
+      flex: '1'
     }
   }
 
@@ -51,24 +50,65 @@ class Home extends Component {
     })
   }
 
+  redirectToGroup() {
+    this.setState({
+      groupReady: true,
+      groupUuid: this.inputGroupRef.inputRef.value
+    })
+  }
+
+  redirectNamedGroup(name) {
+    this.inputGroupRef.inputRef.value = name;
+    this.redirectToGroup();
+  }
+
+  renderRecents() {
+    const groups = this.props.cryptoReducer.groups;
+    if (Object.keys(groups).length < 1) {
+      return null;
+    }
+    console.log(Object.keys(groups))
+    const recents = Object.keys(groups).map((group, i) => {
+      return (<Button style={{marginBottom: '10px'}} key={i} basic disabled={this.state.buttonsDisabled} fluid onClick={() => this.redirectNamedGroup(group)}>{groups[group].nickname || group}</Button>);
+    });
+    return (
+      <Segment >
+        <Header>Recent rooms</Header>
+        {recents}
+      </Segment>
+    )
+  }
+
   render() {
     if (this.state.groupReady) {
       return (
-        <Redirect to={`/t/${this.state.groupUuid}`} />
+        <Redirect to={`/t/${this.state.groupUuid}`} push />
       )
     }
     return (
       <div style={this.containerStyles}>
         <div style={{ alignSelf: 'flex-start' }} />
-        <Segment style={this.segmentStyles}>
-          <Button disabled={this.state.buttonsDisabled} primary fluid as={Link} to='/t/lobby'>Join Lobby</Button>
-          <Divider horizontal>Or</Divider>
-          <Button secondary disabled={this.state.buttonsDisabled} fluid onClick={this.generateGroup}>Create a new group</Button>
-        </Segment>
+        <div style={this.segmentStyles}>
+          {/* <Button disabled={this.state.buttonsDisabled} primary fluid as={Link} to='/t/lobby'>Join Lobby</Button> */}
+          {this.renderRecents()}
+          <Segment>
+            <Header>Enter room code</Header>
+            <Input disabled={this.state.buttonsDisabled} icon={<Icon name='arrow right' inverted circular link onClick={this.redirectToGroup} />} fluid ref={ref => this.inputGroupRef = ref} />
+          </Segment>
+          <Segment>
+            <Header>Create a new room</Header>
+            <Button primary disabled={this.state.buttonsDisabled} fluid onClick={this.generateGroup}>Create room</Button>
+          </Segment>
+        </div>
         <div style={{ alignSelf: 'flex-end'  }} />
       </div>
     );
   }
 }
 
-export default Home;
+const mapStateToProps = (state) => {
+  const {cryptoReducer} = state;
+  return {cryptoReducer};
+}
+
+export default connect(mapStateToProps, {})(Home);

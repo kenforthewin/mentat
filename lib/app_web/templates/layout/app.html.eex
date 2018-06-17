@@ -8,7 +8,7 @@
     <meta name="description" content="Group chat with tags.">
     <meta name="author" content="Kenny Bergquist">
     <link rel="manifest" href="/manifest.json">
-    <title>Scalar</title>
+    <title>Mentat</title>
   </head>
   <body style="height: 100%; overflow: hidden; background-color:whitesmoke;">
     <div style="height: 100%" id="root">

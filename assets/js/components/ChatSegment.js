@@ -1,8 +1,5 @@
 import React, { Component } from 'react';
-import { Segment, Comment, Rail, Icon, Label, Ref, Transition, Dimmer, Loader, Item, Message} from 'semantic-ui-react'
-import TimeAgo from 'react-timeago'
-import moment from 'moment'
-import Linkify from 'react-linkify'
+import { Segment, Comment, Label, Ref} from 'semantic-ui-react'
 import RenderedMessage from './RenderedMessage';
 
 class ChatSegment extends Component {

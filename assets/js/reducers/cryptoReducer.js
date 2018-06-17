@@ -21,7 +21,19 @@ export default (state = INITIAL_STATE, action) => {
           ...state.groups,
           [action.room]: {
             privateKey: action.privateKey,
-            publicKey: action.publicKey
+            publicKey: action.publicKey,
+            nickname: action.name || ''
+          }
+        }
+      }
+    case 'new_group_name':
+      return {
+        ...state,
+        groups: {
+          ...state.groups,
+          [action.room]: {
+            ...state.groups[action.room],
+            nickname: action.nickname
           }
         }
       }
