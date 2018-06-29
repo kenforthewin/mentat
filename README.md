@@ -1,5 +1,7 @@
 # Mentat
 
+[ ![Codeship Status for kenforthewin/mentat](https://app.codeship.com/projects/b39d7c00-3d9f-0136-ecdb-161825e9517a/status?branch=master)](https://app.codeship.com/projects/290692)
+
 Mentat is a group chat application with a focus on message tagging and privacy. It allows deep categorization and retrieval of messages based on tags (a la Twitter hashtags). It also aims for reasonable privacy, meaning everything aside from feature metadata is end-to-end encrypted with OpenPGP, including avatars. Feature metadata is anything that the server depends on in order to deliver a feature; tags are stored in plaintext in order to index and retrieve them from the database, and URLs are sent as plaintext so the server can ping them and generate a thumbnail.
 
 See it in action here:
@@ -53,9 +55,7 @@ Right now, it's the user's responsibility to use a secure device that only she h
 
 ## Development
 
-`./scripts/run_dev.sh`
-
-`localhost:4000`
+Ensure that Docker and docker-compose are installed and the Docker daemon is running. Start the development environment by navigating to the root of the project and running the following script: `./scripts/run_dev.sh`. Once the compilation and Javascript build are complete, the app will be available at `http://localhost:4000`.
 
 ## Project Structure
 
