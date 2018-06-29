@@ -54,7 +54,7 @@ export default class MainMenuDropdown extends Component {
           <Form>
             <Form.Field>
               <label style={{color: 'white'}}>Room name</label>
-              <input value={this.props.currentName} ref={this.roomNameRef}/>
+              <input defaultValue={this.props.currentName} ref={this.roomNameRef}/>
             </Form.Field>
             <Form.Field >
               <Checkbox defaultChecked={this.props.generateUrls} label={<label style={{color: 'white'}}>Generate URL previews</label>} ref={this.generateUrlsRef}/>

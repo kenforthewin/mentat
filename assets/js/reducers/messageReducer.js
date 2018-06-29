@@ -11,7 +11,10 @@ export default (state = INITIAL_STATE, action) => {
         ...state,
         messages: {
           ...state.messages,
-          [action.id]: action.message
+          [action.id]: {
+            ...state.messages[action.id],
+            ...action.message
+          }
         }
       }
     case 'new_url':

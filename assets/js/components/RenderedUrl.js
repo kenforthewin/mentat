@@ -1,14 +1,10 @@
 import React, {Component} from 'react';
 import { Item } from 'semantic-ui-react';
 
-export default class RenderedText extends Component {
+export default class RenderedUrl extends Component {
   constructor(props) {
     super(props);
     this.maybeRenderImage = this.maybeRenderImage.bind(this);
-  }
-
-  componentDidMount() {
-    this.props.scrollDown();
   }
 
   maybeRenderImage(url, image = false) {

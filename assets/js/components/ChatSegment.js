@@ -13,31 +13,36 @@ class ChatSegment extends Component {
     this.chatSegment = React.createRef();
     this.handleScroll = this.handleScroll.bind(this);
     this.scrollDown = this.scrollDown.bind(this);
+    this.maybeScrollDown = this.maybeScrollDown.bind(this);
     this.loadingMessages = false;
     this.lastMessageLoaded = false;
     this.scrolledDown = true;
   }
 
   getSnapshotBeforeUpdate(prevProps, prevState) {
-    return this.chatSegment.scrollHeight;
+    return {scrollHeight: this.chatSegment.scrollHeight };
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (((prevProps.messageIds !== this.props.messageIds && this.props.messageIds.length > 0))) {
+    if (prevProps.messageIds !== this.props.messageIds && this.props.messageIds.length > 0) {
       const node = this.chatSegment;
       if (this.props.updateType === 'append' && this.scrolledDown) {
         node.scrollTop = node.scrollHeight - node.clientHeight;
       }
       else if (this.props.updateType === 'prepend') {
-        node.scrollTop = node.scrollHeight - snapshot;
+        node.scrollTop = node.scrollHeight - snapshot.scrollHeight;
         this.loadingMessages = false;
       }
     }
   }
 
   scrollDown() {
+    this.chatSegment.scrollTop = this.chatSegment.scrollHeight - this.chatSegment.clientHeight;
+  }
+
+  maybeScrollDown() {
     if (this.scrolledDown) {
-      this.chatSegment.scrollTop = this.chatSegment.scrollHeight - this.chatSegment.clientHeight;
+      this.scrollDown();
     }
   }
   
@@ -57,7 +62,7 @@ class ChatSegment extends Component {
             key={i}
             onTagClick={this.props.onTagClick} 
             handleNewTagOnMessage={this.props.handleNewTagOnMessage}
-            scrollDown={this.scrollDown}
+            scrollDown={this.maybeScrollDown}
             urlData={message.urlData}
             removeMessageTag={this.props.removeMessageTag}
             user={this.props.usersReducer.users[message.uuid]}
@@ -82,7 +87,7 @@ class ChatSegment extends Component {
   render() {
     return (
       <Ref innerRef={this.handleRef}>
-        <Segment raised style={this.segmentStyles} onScroll={this.handleScroll}>
+        <Segment raised style={this.segmentStyles} onWheel={this.handleScroll} onScroll={this.handleScroll}>
             <Comment.Group style={{ maxWidth: '100%', minHeight: '100%', margin: '0 0 0 0', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
               {this.renderMessages()}
             </Comment.Group>
