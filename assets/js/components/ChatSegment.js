@@ -14,13 +14,18 @@ class ChatSegment extends Component {
     this.handleScroll = this.handleScroll.bind(this);
     this.scrollDown = this.scrollDown.bind(this);
     this.maybeScrollDown = this.maybeScrollDown.bind(this);
-    this.loadingMessages = false;
-    this.lastMessageLoaded = false;
     this.scrolledDown = true;
+    this.initialLoad = true;
+  }
+
+  componentDidMount() {
+    setTimeout(() => {
+      this.initialLoad = false;
+    }, 5000)
   }
 
   getSnapshotBeforeUpdate(prevProps, prevState) {
-    return {scrollHeight: this.chatSegment.scrollHeight };
+    return { scrollHeight: this.chatSegment.scrollHeight };
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
@@ -31,7 +36,6 @@ class ChatSegment extends Component {
       }
       else if (this.props.updateType === 'prepend') {
         node.scrollTop = node.scrollHeight - snapshot.scrollHeight;
-        this.loadingMessages = false;
       }
     }
   }
@@ -41,7 +45,7 @@ class ChatSegment extends Component {
   }
 
   maybeScrollDown() {
-    if (this.scrolledDown) {
+    if (this.initialLoad || this.scrolledDown) {
       this.scrollDown();
     }
   }
@@ -75,11 +79,11 @@ class ChatSegment extends Component {
   handleScroll(e) {
     const node = this.chatSegment;
     this.scrolledDown = node.scrollTop === node.scrollHeight - node.clientHeight;
-    if (this.props.loadingMessages) {
+    if (this.props.messagesLoading) {
       e.preventDefault()
       return false;
     }
-    if (!this.props.lastMessageLoaded && !this.props.loadingMessages && node.scrollTop === 0 && this.props.messages.length > 0) {
+    if (!this.props.lastMessageLoaded && !this.props.messagesLoading && node.scrollTop === 0 && this.props.messages.length > 0) {
       this.props.loadMoreMessages();
     }
   }

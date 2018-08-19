@@ -1,11 +1,9 @@
 import React, {Component} from 'react';
-import {Comment, Label, Dropdown, Input, Icon, Popup, Button} from 'semantic-ui-react'
-import { Link } from 'react-router-dom';
+import {Comment, Label, Input, Popup, Button} from 'semantic-ui-react'
 import EmojiConvertor from 'emoji-js';
 import Linkify from 'react-linkify'
 import TimeAgo from 'react-timeago'
 import moment from 'moment'
-import twitter from 'twitter-text'
 import RenderedUrl from './RenderedUrl';
 
 export default class RenderedMessage extends Component {
@@ -35,7 +33,7 @@ export default class RenderedMessage extends Component {
   render() {
     let labels = this.props.tags.map((t, i) => {
       return (
-        <Popup key={i} trigger={<Label size="mini" as='a' onClick={this.props.onTagClick}>{t}</Label>} hoverable size='mini' content={<Button content='remove' compact size='mini' color='red' onClick={() => { this.props.removeMessageTag(this.props.id, t) }}/>}/>
+        <Popup basic key={i} trigger={<Label size="mini" as='a' onClick={this.props.onTagClick}>{t}</Label>} hoverable size='mini' content={<Button icon='trash' compact size='mini' color='red' onClick={() => { this.props.removeMessageTag(this.props.id, t) }}/>}/>
       )
     });
     labels[labels.length] = <Label key={labels.length + 1} size='mini'><Input className='newTagInput' onKeyPress={(e) => this.props.handleNewTagOnMessage(e, this.props.id)} transparent placeholder='+'/></Label>
