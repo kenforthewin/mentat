@@ -479,9 +479,10 @@ class App extends Component {
 
         const urls = this.props.userReducer.urlPreviews ? twitter.extractUrls(message).map((url) => url.startsWith('http') ? url : 'https://' + url) : [];
         extractedTags.forEach((extractedTag) => {
-          allTags = allTags.includes(extractedTag) ? allTags : [
+          const downcaseTag = extractedTag.toLowerCase();
+          allTags = allTags.includes(downcaseTag) ? allTags : [
             ...allTags,
-            extractedTag
+            downcaseTag
           ]
         })
 
@@ -607,6 +608,7 @@ class App extends Component {
       publicKeys: openpgp.key.readArmored(data.publicKey).keys
     };
     
+
     openpgp.encrypt(options).then((ciphertext) => {
       const encrypted = ciphertext.data;
       this.channel.push("approve_request", { uuid: data.uuid, groupPublicKey: this.props.cryptoReducer.groups[this.room].publicKey, encryptedGroupPrivateKey: encrypted})
@@ -649,7 +651,7 @@ class App extends Component {
   handleNewTagOnMessage(e, id) {
     if (e.key === "Enter") {
       e.preventDefault();
-      const newTag = e.target.value;
+      const newTag = e.target.value.toLowerCase();
       this.channel.push("new_message_tag", {id, newTag})
       e.target.value = '';
     } else if (e.key === " ") {
