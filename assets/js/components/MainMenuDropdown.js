@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
-import {Dropdown, Modal, Header, Button, Icon, Form, Checkbox, Label} from 'semantic-ui-react'
+import {Dropdown, Modal, Header, Button, Icon, Form, Checkbox, Label, Message} from 'semantic-ui-react'
 import { Link } from 'react-router-dom';
+import InviteUserModal from './InviteUserModal'
 
 export default class MainMenuDropdown extends Component {
   constructor(props) {
@@ -13,8 +14,11 @@ export default class MainMenuDropdown extends Component {
 
     this.state = {
       showModal: false,
-      showRoomModal: false
+      showRoomModal: false,
+      showQrModal: false
     }
+
+    this.roomUrl = 'https://groupchat.kenforthewin.com/t/' + this.props.roomUuid;
   }
 
   updateRoom() {
@@ -68,12 +72,34 @@ export default class MainMenuDropdown extends Component {
         </Modal.Actions>
       </Modal>
       );
+    } else if (this.state.showQrModal) {
+      return (
+        <Modal basic closeOnDimmerClick={false} size='small' open>
+          <Header content='Share URL or QR Code' />
+          <Modal.Content>
+            <Message compact>
+              <Message.Content>
+                {this.roomUrl}
+              </Message.Content>
+            </Message>
+            <br />
+            <br />
+            <InviteUserModal qrInput={this.props.roomUuid} />
+            <br />
+            <br />
+            <Button color='green' inverted onClick={() => this.setState({ showQrModal: false })}>
+              <Icon name='checkmark' /> OK
+            </Button>
+          </Modal.Content>
+        </Modal>
+      );
     }
     return (
       <Dropdown icon='options' size='large' style={{flex: 0}} direction='left'>
         <Dropdown.Menu>
           <Dropdown.Item text='Change appearance' onClick={this.props.changeName}/>
           <Dropdown.Item text='Room settings' onClick={() => this.setState({...this.state, showRoomModal: true})} />
+          <Dropdown.Item text='Invite a new user' onClick={() => this.setState({ showQrModal: true })} />
           <Dropdown.Divider />
           <Dropdown.Item text='Delete local storage' onClick={() => this.setState({...this.state, showModal: true})} />
           <Dropdown.Item text='Exit to main menu' as={Link} to='/' />

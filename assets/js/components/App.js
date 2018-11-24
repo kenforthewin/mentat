@@ -18,7 +18,6 @@ import {persistor} from '../reducers/index';
 
 let openpgp =  require('openpgp');
 
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -705,7 +704,8 @@ class App extends Component {
               burnBrowser={this.props.burnBrowser}
               updateRoomSettings={this.updateRoomSettings}
               generateUrls={this.props.userReducer.urlPreviews} 
-              currentName={this.props.cryptoReducer.groups[this.room] ? this.props.cryptoReducer.groups[this.room].nickname : ''} />
+              currentName={this.props.cryptoReducer.groups[this.room] ? this.props.cryptoReducer.groups[this.room].nickname : ''}
+              roomUuid={this.room} />
         </div>
         <ChatSegment
             messages={this.displayedMessages()} 
