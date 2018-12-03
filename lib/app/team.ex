@@ -6,6 +6,7 @@ defmodule App.Team do
     field :name, :string
     field :claim_uuid, :string
     field :nickname, :string
+    field :public, :boolean
     has_many :users, App.User
     has_many :messages, App.Message
     has_many :tags, App.Tag
@@ -16,6 +17,6 @@ defmodule App.Team do
   def changeset(team, attrs) do
     team
     |> cast(attrs, [:name, :claim_uuid, :nickname])
-    |> validate_required([:name])
+    |> validate_required([:name, :public])
   end
 end

@@ -10,7 +10,7 @@
     <link rel="manifest" href="/manifest.json">
     <title>Mentat</title>
   </head>
-  <body style="height: 100%; overflow: hidden; background-color:whitesmoke;">
+  <body style="height: 100%; overflow: hidden; background-color:#5C6370;">
     <div style="height: 100%" id="root">
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
   </body>

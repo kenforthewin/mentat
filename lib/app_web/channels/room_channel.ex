@@ -197,8 +197,12 @@ defmodule AppWeb.RoomChannel do
       if team.claim_uuid == uuid do
         broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: true}
       else
-        request = Repo.one(from r in Request, where: r.user_id == ^user.id and r.team_id == ^team_id) || Repo.insert!(Request.changeset(%Request{}, %{user_public_key: public_key, user_id: user.id, team_id: team_id}))
-        broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: false, name: name, public_key: public_key, encrypted_private_key: request.encrypted_team_private_key, group_public_key: request.team_public_key }
+        if team.public do
+          broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: false}
+        else 
+          request = Repo.one(from r in Request, where: r.user_id == ^user.id and r.team_id == ^team_id) || Repo.insert!(Request.changeset(%Request{}, %{user_public_key: public_key, user_id: user.id, team_id: team_id}))
+          broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: false, name: name, public_key: public_key, encrypted_private_key: request.encrypted_team_private_key, group_public_key: request.team_public_key }
+        end
       end
     end
     {:noreply, socket}
