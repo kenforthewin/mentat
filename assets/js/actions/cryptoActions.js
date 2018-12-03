@@ -95,3 +95,10 @@ export const newGroupName = (room, nickname) => {
     nickname
   }
 }
+
+export const setGroupPublic = (room) => {
+  return {
+    type: 'set_public',
+    room: room
+  }
+}

@@ -28,7 +28,7 @@ defmodule AppWeb.RoomChannel do
       order_by: [desc: count(m.id)])
     rendered_tags = TagView.render("index.json", %{tags: tags})
     send(self(), :after_join)
-    {:ok, %{requests: rendered_requests, messages: rendered_messages, tags: rendered_tags, name: user.name, color: user.color, roomName: team.nickname}, assign(socket, :team_id, team.id)}
+    {:ok, %{requests: rendered_requests, messages: rendered_messages, tags: rendered_tags, name: user.name, color: user.color, roomName: team.nickname, public: team.public}, assign(socket, :team_id, team.id)}
   end
 
   def handle_in("update_room_name", %{"team_name" => team_name}, socket) do

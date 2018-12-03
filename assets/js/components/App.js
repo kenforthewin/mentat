@@ -13,7 +13,7 @@ import MessageForm from './MessageForm';
 import UserModal from './UserModal';
 import {addMessage,newUrl,newTag,refreshTags,removeTag} from '../actions/messageActions';
 import {addUser, setLastSynced} from '../actions/usersAction';
-import { generateKeypair, generateGroupKeypair, receiveGroupKeypair, burnBrowser, newGroupName } from '../actions/cryptoActions';
+import { generateKeypair, generateGroupKeypair, receiveGroupKeypair, burnBrowser, newGroupName, setGroupPublic } from '../actions/cryptoActions';
 import {persistor} from '../reducers/index';
 
 let openpgp =  require('openpgp');
@@ -21,6 +21,7 @@ let openpgp =  require('openpgp');
 class App extends Component {
   constructor(props) {
     super(props);
+    this.room = props.match.params.room
     this.typing = false;
     this.privKeyObj = null;
     this.pubKeyObj = null;
@@ -37,10 +38,8 @@ class App extends Component {
       typing: [], 
       requests: {}, 
       messagesLoading: true,
-      generatingGroupKey: false };
-
-    this.room = props.match.params.room
-    this.publicRoom = true
+      generatingGroupKey: false,
+      publicRoom: this.props.cryptoReducer.groups[this.room] && this.props.cryptoReducer.groups[this.room].public };
 
     this.handleMessage = this.handleMessage.bind(this);
     this.initializeMessages = this.initializeMessages.bind(this);
@@ -235,7 +234,7 @@ class App extends Component {
         postMessage = postMessage || this.state.tags.includes(t);
       });
       if (this.state.tags.length === 0 || postMessage) {
-        if (this.publicRoom) {
+        if (this.state.publicRoom) {
           const newMessage = {id: payload.id, name: payload.name, text: payload.text, color: payload.color, timestamp: moment().format(), tags: payload.tags, uuid: payload.uuid }
           this.addMessage(newMessage, payload, tags)
         } else {
@@ -280,7 +279,12 @@ class App extends Component {
 
     this.channel.join()
       .receive("ok", resp => {
-        if (this.props.cryptoReducer.groups[this.room]) {
+        console.log(resp)
+        if (!this.state.publicRoom && resp.public) {
+          this.setState({publicRoom: true});
+          this.props.setGroupPublic(this.room);
+        }
+        if (this.props.cryptoReducer.groups[this.room] || resp.public) {
           this.initializeMessages(resp.messages.messages);
           this.props.updateName(resp.name, resp.color);
           this.getTags(resp.tags.tags);
@@ -324,7 +328,7 @@ class App extends Component {
   }
 
   async syncUsers(users) {
-    if (this.publicRoom) return
+    if (this.state.publicRoom) return
 
     const now = moment().format();
     this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
@@ -421,11 +425,11 @@ class App extends Component {
   }
 
   async initializeMessages(messages) {
-    this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
+    this.privKeyObj = this.state.publicRoom || this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
     await Promise.all(messages.map(async (m, i) => {
       const cachedMessage = this.cachedMessage(m.id);
       if (!cachedMessage) {
-        if (this.publicRoom) {
+        if (this.state.publicRoom) {
           const newMessage = {uuid: m.user.uuid, urlData: m.url_data, id: m.id, name: m.user.name, color: m.user.color, text: m.body, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)}
           this.props.addMessage(newMessage)
         } else {
@@ -509,7 +513,7 @@ class App extends Component {
           ]
         })
 
-        if (this.publicRoom) {
+        if (this.state.publicRoom) {
           this.channel.push("new_msg", {urls: urls, text: message, uuid: this.props.userReducer.uuid, tags: allTags, room: this.room}); 
         } else {
           this.pubKeyObj = this.pubKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].publicKey).keys
@@ -608,7 +612,7 @@ class App extends Component {
             this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
             const cachedMessage = this.cachedMessage(m.id);
             if (!cachedMessage) {
-              if (this.publicRoom) {
+              if (this.state.publicRoom) {
                 const newMessage = {id: m.id, name: m.user.name, color: m.user.color, text: m.body, timestamp: m.inserted_at, tags: m.tags.map(t => t.name)}
                 this.props.addMessage(newMessage);
               } else {
@@ -707,10 +711,10 @@ class App extends Component {
   }
 
   render() {
-    if (!this.publicRoom &&(!this.props.cryptoReducer.publicKey || this.state.generatingGroupKey)) {
+    if (!this.state.publicRoom && (!this.props.cryptoReducer.publicKey || this.state.generatingGroupKey)) {
       return this.renderLoadingKey();
     }
-    else if (!this.publicRoom && this.props.userReducer.name && this.props.userReducer.name.length > 1 && !(this.props.cryptoReducer.groups[this.room] &&this.props.cryptoReducer.groups[this.room].privateKey)) {
+    else if (!this.state.publicRoom && this.props.userReducer.name && this.props.userReducer.name.length > 1 && !(this.props.cryptoReducer.groups[this.room] &&this.props.cryptoReducer.groups[this.room].privateKey)) {
       return this.renderGate();
     }
     return (
@@ -789,7 +793,8 @@ const mapDispatchToProps = (dispatch) => {
     generateGroupKeypair: (room) => dispatch(generateGroupKeypair(room)),
     receiveGroupKeypair: (room, publicKey, encryptedPrivateKey, users = [], name = '') => dispatch(receiveGroupKeypair(room, publicKey, encryptedPrivateKey, users, name)),
     updateUrlPreviews: (urlPreviews) => dispatch(updateUrlPreviews(urlPreviews)),
-    newGroupName: (room, nickname) => dispatch(newGroupName(room, nickname))
+    newGroupName: (room, nickname) => dispatch(newGroupName(room, nickname)),
+    setGroupPublic: (room) => dispatch(setGroupPublic(room))
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(App);
