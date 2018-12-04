@@ -57,11 +57,11 @@ export default class MainMenuDropdown extends Component {
         <Modal.Content>
           <Form>
             <Form.Field>
-              <label style={{color: 'white'}}>Room name</label>
+              <label >Room name</label>
               <input defaultValue={this.props.currentName} ref={this.roomNameRef}/>
             </Form.Field>
             <Form.Field >
-              <Checkbox defaultChecked={this.props.generateUrls} label={<label style={{color: 'white'}}>Generate URL previews</label>} ref={this.generateUrlsRef}/>
+              <Checkbox defaultChecked={this.props.generateUrls} label={<label>Generate URL previews</label>} ref={this.generateUrlsRef}/>
             </Form.Field>
           </Form>
         </Modal.Content>
@@ -95,7 +95,7 @@ export default class MainMenuDropdown extends Component {
       );
     }
     return (
-      <Dropdown icon='options' size='large' style={{flex: 0, color: 'white'}} direction='left'>
+      <Dropdown icon='options' size='large' style={{flex: 0}} direction='left'>
         <Dropdown.Menu>
           <Dropdown.Item text='Change appearance' onClick={this.props.changeName}/>
           <Dropdown.Item text='Room settings' onClick={() => this.setState({...this.state, showRoomModal: true})} />

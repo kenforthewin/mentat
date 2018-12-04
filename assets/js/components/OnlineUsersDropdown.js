@@ -45,8 +45,8 @@ export default class OnlineUsersDropdown extends Component {
 
   render() {
     return (
-      <span  style={{flex: '0 1 auto', marginRight: '10px', color: 'white'}}> {this.onlineCount()} {' '}
-        <Dropdown icon='users' direction='right' style={{color:'white'}} >
+      <span  style={{flex: '0 1 auto', marginRight: '10px'}}> {this.onlineCount()} {' '}
+        <Dropdown icon='users' direction='right' >
           <Dropdown.Menu>
             <Dropdown.Header content='Online Now' />
             <Dropdown.Divider />
