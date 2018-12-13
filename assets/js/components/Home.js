@@ -42,7 +42,7 @@ class Home extends Component {
       body: JSON.stringify({
         uuid: group_uuid,
         name: this.nameInput.current.value,
-        public: this.privateInput.current.state.checked
+        public: !this.privateInput.current.state.checked
       })
     }).then((response) => {
       return response.json();

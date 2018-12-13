@@ -21,7 +21,7 @@
     "emoji-mart": "^2.6.1",
     "huebee": "^2.0.0",
     "moment": "^2.22.1",
-    "openpgp": "^3.0.9",
+    "openpgp": "3.0.9",
     "phoenix": "file:../deps/phoenix",
     "phoenix_html": "file:../deps/phoenix_html",
     "pica": "^4.1.1",

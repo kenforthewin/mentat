@@ -9,7 +9,7 @@ defmodule AppWeb.RoomChannel do
   def join("room:" <> private_room_id, %{"tags" => tags, "uuid" => uuid, "color" => color, "lastSynced" => last_synced}, socket) do
     team = Repo.one(from t in Team, where: t.name == ^private_room_id)
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team.id, select: t.id)
-    user = Repo.one(from u in User, where: u.uuid == ^uuid) || Repo.insert!(User.changeset(%User{}, %{uuid: uuid, color: color}))
+    user = Repo.one(from u in User, where: u.uuid == ^uuid) 
     requests = Repo.all(from r in Request, where: r.team_id == ^team.id)
     requests = Repo.preload requests, :user
     rendered_requests = RequestView.render("index.json", %{requests: requests})

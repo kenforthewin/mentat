@@ -41,6 +41,7 @@ class App extends Component {
       generatingGroupKey: false,
       publicRoom: this.props.cryptoReducer.groups[this.room] && this.props.cryptoReducer.groups[this.room].public };
 
+    this.joinChannel = this.joinChannel.bind(this);
     this.handleMessage = this.handleMessage.bind(this);
     this.initializeMessages = this.initializeMessages.bind(this);
     this.updateTags = this.updateTags.bind(this);
@@ -94,6 +95,10 @@ class App extends Component {
     if(!this.props.cryptoReducer.groups[this.room] && prevProps.userReducer.name !== this.props.userReducer.name) {
       this.requestClaimOrInvite()
     }
+
+    if (!prevProps.cryptoReducer.publicKey && this.props.cryptoReducer.publicKey) {
+      this.joinChannel()
+    }
   }
 
   requestClaimOrInvite() {
@@ -104,8 +109,19 @@ class App extends Component {
     return this.props.messageReducer.messages[id];
   }
 
-  componentDidMount() {
-    let socket = new Socket("/socket", {params: {token: window.userToken, uuid: this.props.userReducer.uuid}});
+  async componentDidMount() {
+
+    if (this.props.cryptoReducer.publicKey) {
+      this.joinChannel();
+    } else {
+      this.props.generateKeypair()
+    }
+
+    this.setupNotifications();
+  }
+
+  async joinChannel() {
+    let socket = new Socket("/socket", {params: {uuid: this.props.userReducer.uuid}});
     socket.connect();
     this.channel = socket.channel(`room:${this.room}`, {tags: this.state.tags, uuid: this.props.userReducer.uuid, color: this.props.userReducer.color, lastSynced: this.props.usersReducer.lastSynced});
 
@@ -300,17 +316,11 @@ class App extends Component {
           });
           this.syncUsers(resp.requests.requests);
           this.props.newGroupName(this.room, resp.roomName);
-
-        } else if (!this.props.cryptoReducer.publicKey) {
-            this.props.generateKeypair();
-        }
-        else {
+        } else {
           this.requestClaimOrInvite();
         }
 
       }).receive("error", resp => { console.log("Unable to join", resp) });
-
-    this.setupNotifications();
   }
 
   addMessage(message, payload, tags) {
@@ -425,7 +435,6 @@ class App extends Component {
   }
 
   async initializeMessages(messages) {
-    this.privKeyObj = this.state.publicRoom || this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
     await Promise.all(messages.map(async (m, i) => {
       const cachedMessage = this.cachedMessage(m.id);
       if (!cachedMessage) {
