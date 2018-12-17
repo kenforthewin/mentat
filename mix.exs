@@ -43,7 +43,10 @@ defmodule App.Mixfile do
       {:cowboy, "~> 1.0"},
       {:scrape, "~> 2.0"},
       {:html5ever, "~> 0.5.0", override: true},
-      {:rustler, "~> 0.16.0", override: true}
+      {:rustler, "~> 0.16.0", override: true},
+      {:guardian, "~> 1.0"},
+      {:comeonin, "~> 4.0"},
+      {:bcrypt_elixir, "~> 1.1"}
     ]
   end
 

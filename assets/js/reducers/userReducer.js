@@ -4,7 +4,8 @@ const INITIAL_STATE = {
   uuid: uuidv1(),
   name: '',
   color: '#'+Math.floor(Math.random()*16777215).toString(16),
-  urlPreviews: true
+  urlPreviews: true,
+  token: null
 }
 
 export default (state = INITIAL_STATE, action) => {
@@ -21,6 +22,11 @@ export default (state = INITIAL_STATE, action) => {
       return {
         ...state,
         urlPreviews: action.urlPreviews
+      }
+    case 'sign_in':
+      return {
+        ...state,
+        token: action.token
       }
     default:
       return state;

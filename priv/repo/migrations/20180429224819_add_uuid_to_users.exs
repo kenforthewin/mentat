@@ -3,8 +3,8 @@ defmodule App.Repo.Migrations.AddUUIDToUsers do
 
   def change do
     alter table(:users) do
-      add :uuid, :string
+      add :uuid, :string, null: false
     end
-    create index(:users, [:uuid])
+    create unique_index(:users, [:uuid])
   end
 end

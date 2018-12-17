@@ -110,7 +110,9 @@ class App extends Component {
   }
 
   async componentDidMount() {
-
+    if (!this.props.userReducer.postPasswordFeature) {
+      this.props.burnBrowser()
+    }
     if (this.props.cryptoReducer.publicKey) {
       this.joinChannel();
     } else {

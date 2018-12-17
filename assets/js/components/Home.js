@@ -3,12 +3,13 @@ import { Segment, Button, Header, Input, Icon, Form, Modal, Checkbox } from 'sem
 import { Link, Redirect } from 'react-router-dom';
 import uuidv1 from 'uuid/v1';
 import { connect } from 'react-redux';
+import SignUp from './SignUp'
 
 class Home extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {buttonsDisabled: false, groupReady: false, groupForm: false}
+    this.state = {buttonsDisabled: false, groupReady: false, groupForm: false, signUp: false}
 
     this.generateGroup = this.generateGroup.bind(this);
     this.redirectToGroup = this.redirectToGroup.bind(this);
@@ -113,12 +114,19 @@ class Home extends Component {
       )
     } else if (this.state.groupForm) {
       return this.renderGroupModal()
+    } else if (this.state.signUp) {
+      return (
+        <SignUp />
+      )
     }
     return (
       <div style={this.containerStyles}>
         <div style={{ alignSelf: 'flex-start' }} />
         <div style={this.segmentStyles}>
           {/* <Button disabled={this.state.buttonsDisabled} primary fluid as={Link} to='/t/lobby'>Join Lobby</Button> */}
+          <Segment>
+            <Button onClick={() => this.setState({ signUp: true })}>Sign up</Button>
+          </Segment>
           {this.renderRecents()}
           <Segment>
             <Header>Enter room code</Header>
@@ -140,4 +148,6 @@ const mapStateToProps = (state) => {
   return {cryptoReducer};
 }
 
-export default connect(mapStateToProps, {})(Home);
+export default connect(mapStateToProps, {
+
+})(Home);

@@ -16,7 +16,9 @@ defmodule AppWeb.Router do
   scope "/api", AppWeb, as: :api do
     pipe_through :api
 
-    resources "/teams",  TeamController
+    resources "/teams", TeamController
+    post "/login", UserController, :login
+    post "/sign_up", UserController, :create
   end
 
   scope "/", AppWeb do

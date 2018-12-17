@@ -8,4 +8,8 @@ defmodule AppWeb.UserView do
   def render("user.json", %{user: user}) do
     %{uuid: user.uuid, name: user.name, avatar: user.avatar}
   end
+
+  def render("session.json", %{jwt: jwt}) do
+    %{jwt: jwt}
+  end
 end
