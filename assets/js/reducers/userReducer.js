@@ -1,7 +1,7 @@
 import uuidv1 from 'uuid/v1';
 
 const INITIAL_STATE = {
-  uuid: uuidv1(),
+  uuid: null,
   name: '',
   color: '#'+Math.floor(Math.random()*16777215).toString(16),
   urlPreviews: true,
@@ -26,7 +26,10 @@ export default (state = INITIAL_STATE, action) => {
     case 'sign_in':
       return {
         ...state,
-        token: action.token
+        token: action.token,
+        uuid: action.id,
+        color: action.color,
+        name: action.name
       }
     default:
       return state;

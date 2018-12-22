@@ -13,12 +13,25 @@ defmodule AppWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/api", AppWeb, as: :api do
-    pipe_through :api
+  pipeline :auth do
+    plug App.UserManager.Pipeline
+  end
 
-    resources "/teams", TeamController
+  pipeline :ensure_auth do
+    plug Guardian.Plug.EnsureAuthenticated
+  end
+
+  scope "/auth", AppWeb do
+    pipe_through [:api, :auth]
+
     post "/login", UserController, :login
     post "/sign_up", UserController, :create
+  end
+
+  scope "/api", AppWeb, as: :api do
+    pipe_through [:api, :auth, :ensure_auth]
+
+    resources "/teams", TeamController
   end
 
   scope "/", AppWeb do

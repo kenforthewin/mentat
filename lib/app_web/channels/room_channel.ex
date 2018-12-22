@@ -9,7 +9,7 @@ defmodule AppWeb.RoomChannel do
   def join("room:" <> private_room_id, %{"tags" => tags, "uuid" => uuid, "color" => color, "lastSynced" => last_synced}, socket) do
     team = Repo.one(from t in Team, where: t.name == ^private_room_id)
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team.id, select: t.id)
-    user = Repo.one(from u in User, where: u.uuid == ^uuid) 
+    user = Guardian.Phoenix.Socket.current_resource(socket)
     requests = Repo.all(from r in Request, where: r.team_id == ^team.id)
     requests = Repo.preload requests, :user
     rendered_requests = RequestView.render("index.json", %{requests: requests})
@@ -28,7 +28,7 @@ defmodule AppWeb.RoomChannel do
       order_by: [desc: count(m.id)])
     rendered_tags = TagView.render("index.json", %{tags: tags})
     send(self(), :after_join)
-    {:ok, %{requests: rendered_requests, messages: rendered_messages, tags: rendered_tags, name: user.name, color: user.color, roomName: team.nickname, public: team.public}, assign(socket, :team_id, team.id)}
+    {:ok, %{requests: rendered_requests, messages: rendered_messages, tags: rendered_tags, name: user.name, color: user.color, roomName: team.nickname}, assign(socket, :team_id, team.id)}
   end
 
   def handle_in("update_room_name", %{"team_name" => team_name}, socket) do
@@ -64,14 +64,14 @@ defmodule AppWeb.RoomChannel do
   end
 
   def handle_in("new_msg", %{"uuid" => uuid, "room" => team, "tags" => tags, "text" => text, "urls" => urls}, socket) do
-    user = Repo.one(from u in User, where: u.uuid == ^uuid)
+    user = Guardian.Phoenix.Socket.current_resource(socket)
     team_id = socket.assigns.team_id
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
     Enum.each(tags, fn(t) -> if !Enum.any?(tag_ids, fn(i) -> i.name == t end), do: Repo.insert!(Tag.changeset(%Tag{}, %{team_id: team_id, name: t})) end)
     message = Repo.insert!(Message.changeset(%Message{}, %{body: text, team_id: team_id, user_id: user.id}))
     final_tags = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team_id)
     Enum.each(final_tags, fn(t) -> Repo.insert!(MessageTag.changeset(%MessageTag{}, %{message_id: message.id, tag_id: t.id})) end)
-    broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team, id: message.id, uuid: uuid}
+    broadcast! socket, "new_msg", %{text: text, name: user.name, color: user.color, tags: tags, room: team, id: message.id, uuid: user.id}
     rendered_url = cond do
       urls |> Enum.any? ->
         url = Enum.at(urls, 0)
@@ -150,59 +150,56 @@ defmodule AppWeb.RoomChannel do
 
   def handle_in("new_name", %{"uuid" => uuid, "name" => name, "color" => color, "avatar" => avatar}, socket) do
     team_id = socket.assigns.team_id
-    user = Repo.one(from u in User, where: u.uuid == ^uuid)
+    user = Guardian.Phoenix.Socket.current_resource(socket)
     Repo.update!(User.changeset(user, %{name: name, color: color}))
     request = Repo.one(from r in Request, where: r.team_id == ^team_id and r.user_id == ^user.id)
     Repo.update!(Request.changeset(request, %{avatar: avatar}))
-    broadcast! socket, "new_name", %{ name: name, uuid: uuid, color: color, avatar: avatar}
+    broadcast! socket, "new_name", %{ name: name, uuid: user.id, color: color, avatar: avatar}
     {:noreply, socket}
   end
 
   def handle_in("new_name", %{"uuid" => uuid, "name" => name, "color" => color}, socket) do
-    user = Repo.one(from u in User, where: u.uuid == ^uuid)
+    user = Guardian.Phoenix.Socket.current_resource(socket)
     user = User.changeset(user, %{name: name, color: color})
     Repo.update!(user)
-    broadcast! socket, "new_name", %{ name: name, uuid: uuid, color: color}
+    broadcast! socket, "new_name", %{ name: name, uuid: user.id, color: color}
     {:noreply, socket}
   end
 
   def handle_in("new_typing", %{"uuid" => uuid, "typing" => typing}, socket) do
-    broadcast! socket, "new_typing", %{uuid: uuid, typing: typing}
+    user = Guardian.Phoenix.Socket.current_resource(socket)
+    broadcast! socket, "new_typing", %{uuid: user.id, typing: typing}
     {:noreply, socket}
   end
 
   def handle_in("approve_request", %{"encryptedGroupPrivateKey" => encrypted_group_private_key, "uuid" => uuid, "groupPublicKey" => group_public_key}, socket) do
     team_id = socket.assigns.team_id
-    user = Repo.one(from u in User, where: u.uuid == ^uuid)
-    request = Repo.one(from r in Request, where: r.team_id == ^team_id and r.user_id == ^user.id)
+    user = Guardian.Phoenix.Socket.current_resource(socket)
+    request = Repo.one(from r in Request, where: r.team_id == ^team_id and r.user_id == ^uuid)
     request = Repo.update!(Request.changeset(request, %{encrypted_team_private_key: encrypted_group_private_key, team_public_key: group_public_key}))
     requests = Repo.all(from r in Request, where: r.team_id == ^team_id)
     requests = Repo.preload requests, :user
     rendered_requests = RequestView.render("index.json", %{requests: requests})
     team = Repo.one(from t in Team, where: t.id == ^team_id)
-    broadcast! socket, "approve_request", %{uuid: uuid, encrypted_group_private_key: encrypted_group_private_key, group_public_key: group_public_key, users: rendered_requests, name: team.nickname}
+    broadcast! socket, "approve_request", %{uuid: request.user_id, encrypted_group_private_key: encrypted_group_private_key, group_public_key: group_public_key, users: rendered_requests, name: team.nickname}
     {:noreply, socket}
   end
 
   def handle_in("new_claim_or_invite", %{"uuid" => uuid, "name" => name, "publicKey" => public_key}, socket) do
     team_id = socket.assigns.team_id
     team = Repo.one(from t in Team, where: t.id == ^team_id)
-    user = Repo.one(from u in User, where: u.uuid == ^uuid)
-    if (!team.claim_uuid) do
-      team = Team.changeset(team, %{claim_uuid: uuid})
+    user = Guardian.Phoenix.Socket.current_resource(socket)
+    if (!team.claim_id) do
+      team = Team.changeset(team, %{claim_id: user.id})
       Repo.update!(team)
       Repo.insert!(Request.changeset(%Request{}, %{user_public_key: public_key, user_id: user.id, team_id: team_id, encrypted_team_private_key: "(claimed)"}))
-      broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: true}
+      broadcast! socket, "new_claim_or_invite", %{uuid: user.id, claimed: true}
     else
-      if team.claim_uuid == uuid do
-        broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: true}
+      if team.claim_id == user.id do
+        broadcast! socket, "new_claim_or_invite", %{uuid: user.id, claimed: true}
       else
-        if team.public do
-          broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: false}
-        else 
-          request = Repo.one(from r in Request, where: r.user_id == ^user.id and r.team_id == ^team_id) || Repo.insert!(Request.changeset(%Request{}, %{user_public_key: public_key, user_id: user.id, team_id: team_id}))
-          broadcast! socket, "new_claim_or_invite", %{uuid: uuid, claimed: false, name: name, public_key: public_key, encrypted_private_key: request.encrypted_team_private_key, group_public_key: request.team_public_key }
-        end
+        request = Repo.one(from r in Request, where: r.user_id == ^user.id and r.team_id == ^team_id) || Repo.insert!(Request.changeset(%Request{}, %{user_public_key: public_key, user_id: user.id, team_id: team_id}))
+        broadcast! socket, "new_claim_or_invite", %{uuid: user.id, claimed: false, name: name, public_key: public_key, encrypted_private_key: request.encrypted_team_private_key, group_public_key: request.team_public_key }
       end
     end
     {:noreply, socket}
@@ -210,10 +207,9 @@ defmodule AppWeb.RoomChannel do
 
   def handle_info(:after_join, socket) do
     push socket, "presence_state", Presence.list(socket)
-    uuid = socket.assigns.uuid
-    user = Repo.one(from u in User, where: u.uuid == ^uuid)
+    user = Guardian.Phoenix.Socket.current_resource(socket)
 
-    {:ok, _} = Presence.track(socket, socket.assigns.uuid, %{
+    {:ok, _} = Presence.track(socket, user.id, %{
       online_at: inspect(System.system_time(:seconds)),
       name: user.name,
       color: user.color

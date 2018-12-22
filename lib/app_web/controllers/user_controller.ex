@@ -2,13 +2,13 @@ defmodule AppWeb.UserController do
   use AppWeb, :controller
   alias App.{UserManager, UserManager.Guardian, User, Repo}
 
-  def login(conn, %{"user" => %{"email" => email, "password" => password}}) do
+  def login(conn, %{"email" => email, "password" => password}) do
     UserManager.authenticate_user(email, password)
     |> login_reply(conn)
   end
 
-  def create(conn, %{"uuid" => uuid, "email" => email, "password" => password}) do
-    Repo.insert!(User.changeset(%User{}, %{encrypted_password: password, email: email, uuid: uuid}))
+  def create(conn, %{"email" => email, "password" => password, "publicKey" => public_key}) do
+    Repo.insert!(User.changeset(%User{}, %{encrypted_password: password, email: email, public_key: public_key}))
     UserManager.authenticate_user(email, password)
     |> login_reply(conn)
   end
@@ -23,12 +23,11 @@ defmodule AppWeb.UserController do
     conn = Guardian.Plug.sign_in(conn, user)
     jwt = Guardian.Plug.current_token(conn)
     claims = Guardian.Plug.current_claims(conn)
-    render(conn, "session.json", jwt: jwt)
+    render(conn, "session.json", jwt: jwt, id: user.id, name: user.name, color: user.color, public_key: user.public_key)
   end
 
-  # defp login_reply({:error, reason}, conn) do
-  #   conn
-  #   |> put_flash(:error, to_string(reason))
-  #   |> new(%{})
-  # end
+  defp login_reply({:error, reason}, conn) do
+    conn
+    |> json(%{error: reason})
+  end
 end

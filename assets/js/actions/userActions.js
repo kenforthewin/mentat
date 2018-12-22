@@ -13,10 +13,36 @@ export const updateUrlPreviews = (urlPreviews) => {
   }
 }
 
+export const signIn = (email, password) => {
+  return (dispatch, _) => {
+    fetch('/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email,
+        password
+      })
+    }).then((response) => {
+      return response.json();
+    }).then((response) => {
+      console.log(response)
+      dispatch({
+        type: 'sign_in',
+        token: response.jwt,
+        id: response.id,
+        name: response.name,
+        color: response.color
+      })
+    })
+  }
+}
+
 export const signUp = (email, password) => {
   return (dispatch, getState) => {
     const state = getState()
-    fetch('/api/sign_up', {
+    fetch('/auth/sign_up', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -24,14 +50,16 @@ export const signUp = (email, password) => {
       body: JSON.stringify({
         uuid: state.userReducer.uuid,
         email,
-        password
+        password,
+        publicKey: state.cryptoReducer.publicKey
       })
     }).then((response) => {
       return response.json();
     }).then((response) => {
       dispatch({
         type: 'sign_in',
-        token: response.jwt
+        token: response.jwt,
+        id: response.id
       })
     })
   }

@@ -5,7 +5,6 @@ defmodule App.User do
 
   schema "users" do
     field :name, :string
-    field :uuid, :string
     field :color, :string
     field :avatar, :string
     field :public_key, :string
@@ -13,15 +12,17 @@ defmodule App.User do
     field :encrypted_password, :string
     belongs_to :team, App.Team
     has_many :messages, App.Message
+    has_many :user_requests, App.UserRequest
     timestamps()
   end
 
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:name, :team_id, :uuid, :color, :avatar, :public_key, :email, :encrypted_password])
-    |> validate_required([:uuid, :email, :encrypted_password])
+    |> cast(attrs, [:name, :team_id, :color, :avatar, :public_key, :email, :encrypted_password])
+    |> validate_required([:email, :encrypted_password, :public_key])
     |> validate_format(:email, ~r/\A[^@\s]+@([^@\s]+\.)+[^@\W]+\z/)
+    |> validate_length(:encrypted_password, min: 8)
     |> unique_constraint(:email)
     |> put_password_hash()
   end

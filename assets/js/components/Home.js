@@ -4,12 +4,14 @@ import { Link, Redirect } from 'react-router-dom';
 import uuidv1 from 'uuid/v1';
 import { connect } from 'react-redux';
 import SignUp from './SignUp'
+import { signUp, signIn } from '../actions/userActions'
+import { generateKeypair } from '../actions/cryptoActions'
 
 class Home extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {buttonsDisabled: false, groupReady: false, groupForm: false, signUp: false}
+    this.state = {buttonsDisabled: false, groupReady: false, groupForm: false, signUp: false, signIn: false}
 
     this.generateGroup = this.generateGroup.bind(this);
     this.redirectToGroup = this.redirectToGroup.bind(this);
@@ -17,7 +19,6 @@ class Home extends Component {
 
     this.inputGroupRef = React.createRef();
     this.nameInput = React.createRef();
-    this.privateInput = React.createRef();
     this.containerStyles = {
       display: 'flex',
       height: '100%',
@@ -38,12 +39,12 @@ class Home extends Component {
     fetch('/api/teams', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.props.userReducer.token}`
       },
       body: JSON.stringify({
         uuid: group_uuid,
-        name: this.nameInput.current.value,
-        public: !this.privateInput.current.state.checked
+        name: this.nameInput.current.value
       })
     }).then((response) => {
       return response.json();
@@ -93,9 +94,6 @@ class Home extends Component {
             <Form.Field>
               <input placeholder='Group name' ref={this.nameInput}/>
             </Form.Field>
-            <Form.Field>
-              <Checkbox label={<label style={{color: 'white'}}>Private</label>} ref={this.privateInput} />
-            </Form.Field>
           </Form>
         </Modal.Content>
         <Modal.Actions>
@@ -114,9 +112,13 @@ class Home extends Component {
       )
     } else if (this.state.groupForm) {
       return this.renderGroupModal()
-    } else if (this.state.signUp) {
+    } else if (this.state.signUp && !this.props.userReducer.token) {
       return (
-        <SignUp />
+        <SignUp action={this.props.signUp} actionName={'Sign up'} publicKey={this.props.cryptoReducer.publicKey} generateKey={this.props.generateKeypair}/>
+      )
+    } else if (this.state.signIn && !this.props.userReducer.token) {
+      return (
+        <SignUp action={this.props.signIn} actionName={'Sign in'}  publicKey={this.props.cryptoReducer.publicKey}  generateKey={this.props.generateKeypair}/>
       )
     }
     return (
@@ -126,6 +128,7 @@ class Home extends Component {
           {/* <Button disabled={this.state.buttonsDisabled} primary fluid as={Link} to='/t/lobby'>Join Lobby</Button> */}
           <Segment>
             <Button onClick={() => this.setState({ signUp: true })}>Sign up</Button>
+            <Button onClick={() => this.setState({ signIn: true })}>Sign in</Button>
           </Segment>
           {this.renderRecents()}
           <Segment>
@@ -144,10 +147,16 @@ class Home extends Component {
 }
 
 const mapStateToProps = (state) => {
-  const {cryptoReducer} = state;
-  return {cryptoReducer};
+  const {cryptoReducer, userReducer} = state;
+  return {cryptoReducer, userReducer};
 }
 
-export default connect(mapStateToProps, {
+const mapDispatchToProps = (dispatch) => {
+  return {
+    signUp: (email, password) => dispatch(signUp(email, password)),
+    signIn: (email, password) => dispatch(signIn(email, password)),
+    generateKeypair: () => dispatch(generateKeypair())
+  }
+}
 
-})(Home);
+export default connect(mapStateToProps, mapDispatchToProps)(Home);

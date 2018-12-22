@@ -1,4 +1,6 @@
-export default (state = { lastSynced: null, users: {} }, action) => {
+const INITIAL_STATE = { lastSynced: null, users: {} }
+
+export default (state = INITIAL_STATE, action) => {
   switch (action.type) {
     case 'add_user':
       return {

@@ -3,7 +3,7 @@ defmodule App.Repo.Migrations.AddClaimsToTeams do
 
   def change do
       alter table(:teams) do
-        add :claim_uuid, :string
+        add :claim_id, :integer
       end
   end
 end
