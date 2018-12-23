@@ -291,7 +291,6 @@ class App extends Component {
 
     this.channel.join()
       .receive("ok", resp => {
-        console.log(resp)
         if (this.props.cryptoReducer.groups[this.room]) {
           this.initializeMessages(resp.messages.messages);
           this.props.updateName(resp.name, resp.color);

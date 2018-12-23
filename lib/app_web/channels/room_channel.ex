@@ -11,7 +11,7 @@ defmodule AppWeb.RoomChannel do
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team.id, select: t.id)
     user = Guardian.Phoenix.Socket.current_resource(socket)
     requests = Repo.all(from r in Request, where: r.team_id == ^team.id)
-    requests = Repo.preload requests, :user
+    requests = Repo.preload requests, [:user, :team]
     rendered_requests = RequestView.render("index.json", %{requests: requests})
     messages = case length(tag_ids) do
       0 -> Repo.all(from m in Message, where: m.team_id == ^team.id, order_by: [desc: m.inserted_at], limit: 15)
@@ -178,7 +178,7 @@ defmodule AppWeb.RoomChannel do
     request = Repo.one(from r in Request, where: r.team_id == ^team_id and r.user_id == ^uuid)
     request = Repo.update!(Request.changeset(request, %{encrypted_team_private_key: encrypted_group_private_key, team_public_key: group_public_key}))
     requests = Repo.all(from r in Request, where: r.team_id == ^team_id)
-    requests = Repo.preload requests, :user
+    requests = Repo.preload requests, [:user, :team]
     rendered_requests = RequestView.render("index.json", %{requests: requests})
     team = Repo.one(from t in Team, where: t.id == ^team_id)
     broadcast! socket, "approve_request", %{uuid: request.user_id, encrypted_group_private_key: encrypted_group_private_key, group_public_key: group_public_key, users: rendered_requests, name: team.nickname}

@@ -7,6 +7,44 @@ export const burnBrowser = () => {
   }
 }
 
+export const approveRequest = (publicKey, encryptedPrivateKey, encryptedPassphrase, requests) => {
+  return async (dispatch, getState) => {
+    const state = getState();
+    var privKeyObj = openpgp.key.readArmored(state.cryptoReducer.privateKey).keys[0];
+    await privKeyObj.decrypt(state.cryptoReducer.passphrase)
+    const privateKeyOptions = {
+      message: openpgp.message.readArmored(encryptedPrivateKey),
+      privateKeys: [privKeyObj]
+    };
+    const privateKey = await openpgp.decrypt(privateKeyOptions)
+    const passphraseOptions = {
+      message: openpgp.message.readArmored(encryptedPassphrase),
+      privateKeys: [privKeyObj]
+    };
+    const passphrase = await openpgp.decrypt(passphraseOptions)
+    dispatch({
+      type: 'new_key',
+      publicKey,
+      privateKey: privateKey.data,
+      passphrase: passphrase.data
+    })
+
+    requests.requests.forEach(async (request) => {
+      const privateGroupKeyOptions = {
+        message: openpgp.message.readArmored(request.encrypted_team_private_key),
+        privateKeys: [privKeyObj]
+      };
+      const privateKey = await openpgp.decrypt(privateGroupKeyOptions)
+      dispatch({
+        type: 'new_group_key',
+        room: request.team_name,
+        publicKey: request.team_public_key,
+        privateKey: privateKey.data
+      })
+    })
+  }
+}
+
 export const generateKeypair = () => {
   return (dispatch, getState) => {
     const passphrase = randomWords({ exactly: 10, join: ' ' })
