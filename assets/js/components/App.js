@@ -67,6 +67,7 @@ class App extends Component {
     this.syncUsers = this.syncUsers.bind(this);
     this.updateRoomSettings = this.updateRoomSettings.bind(this);
     this.addMessage = this.addMessage.bind(this);
+    this.consumeClaim = this.consumeClaim.bind(this);
 
     this.nameInput = React.createRef();
     this.colorInput = React.createRef();
@@ -82,13 +83,24 @@ class App extends Component {
     }
   }
 
+  async consumeClaim() {
+    const userPublicKey = openpgp.key.readArmored(this.props.cryptoReducer.publicKey).keys
+    const options = {
+      data: this.props.cryptoReducer.groups[this.room].privateKey,
+      publicKeys: userPublicKey
+    };
+    const encryptObject = await openpgp.encrypt(options)
+    this.channel.push("consume_claim", {publicKey: this.props.cryptoReducer.publicKey, teamPublicKey: this.props.cryptoReducer.groups[this.room].publicKey, encryptedTeamPrivateKey: encryptObject.data})
+    this.pushNewTags(this.state.tags);
+    this.setState({
+      ...this.state,
+      generatingGroupKey: false
+    })
+  }
+
   componentDidUpdate(prevProps, prevState, snapshot) {
-    if (prevProps.cryptoReducer.groups[this.room] != this.props.cryptoReducer.groups[this.room] && this.props.cryptoReducer.groups[this.room].publicKey) {
-      this.pushNewTags(this.state.tags);
-      this.setState({
-        ...this.state,
-        generatingGroupKey: false
-      })
+    if (this.props.cryptoReducer.groups[this.room] && this.props.cryptoReducer.groups[this.room].publicKey && !prevProps.cryptoReducer.groups[this.room]) {
+      this.consumeClaim()
     }
 
     if(!this.props.cryptoReducer.groups[this.room] && prevProps.userReducer.name !== this.props.userReducer.name) {

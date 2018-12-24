@@ -160,8 +160,7 @@ defmodule AppWeb.RoomChannel do
 
   def handle_in("new_name", %{"uuid" => uuid, "name" => name, "color" => color}, socket) do
     user = Guardian.Phoenix.Socket.current_resource(socket)
-    user = User.changeset(user, %{name: name, color: color})
-    Repo.update!(user)
+    Repo.update!(User.changeset(user, %{name: name, color: color}))
     broadcast! socket, "new_name", %{ name: name, uuid: user.id, color: color}
     {:noreply, socket}
   end
@@ -185,6 +184,16 @@ defmodule AppWeb.RoomChannel do
     {:noreply, socket}
   end
 
+  def handle_in("consume_claim", %{"publicKey" => public_key, "encryptedTeamPrivateKey" => encrypted_team_private_key, "teamPublicKey" => team_public_key}, socket) do
+    user = Guardian.Phoenix.Socket.current_resource(socket)
+    team_id = socket.assigns.team_id
+    team = Repo.one(from t in Team, where: t.id == ^team_id)
+    if team.claim_id == user.id do
+      Repo.insert!(Request.changeset(%Request{}, %{user_public_key: public_key, user_id: user.id, team_id: team_id, encrypted_team_private_key: encrypted_team_private_key, team_public_key: team_public_key}))
+    end
+    {:noreply, socket}
+  end
+
   def handle_in("new_claim_or_invite", %{"uuid" => uuid, "name" => name, "publicKey" => public_key}, socket) do
     team_id = socket.assigns.team_id
     team = Repo.one(from t in Team, where: t.id == ^team_id)
@@ -192,7 +201,6 @@ defmodule AppWeb.RoomChannel do
     if (!team.claim_id) do
       team = Team.changeset(team, %{claim_id: user.id})
       Repo.update!(team)
-      Repo.insert!(Request.changeset(%Request{}, %{user_public_key: public_key, user_id: user.id, team_id: team_id, encrypted_team_private_key: "(claimed)"}))
       broadcast! socket, "new_claim_or_invite", %{uuid: user.id, claimed: true}
     else
       if team.claim_id == user.id do

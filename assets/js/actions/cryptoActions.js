@@ -22,13 +22,16 @@ export const approveRequest = (publicKey, encryptedPrivateKey, encryptedPassphra
       privateKeys: [privKeyObj]
     };
     const passphrase = await openpgp.decrypt(passphraseOptions)
+    const newPrivateKey = privateKey.data
+    const newPassphrase = passphrase.data
     dispatch({
       type: 'new_key',
       publicKey,
-      privateKey: privateKey.data,
-      passphrase: passphrase.data
+      privateKey: newPrivateKey,
+      passphrase: newPassphrase
     })
-
+    privKeyObj = openpgp.key.readArmored(newPrivateKey).keys[0];
+    await privKeyObj.decrypt(newPassphrase)
     requests.requests.forEach(async (request) => {
       const privateGroupKeyOptions = {
         message: openpgp.message.readArmored(request.encrypted_team_private_key),
@@ -39,7 +42,8 @@ export const approveRequest = (publicKey, encryptedPrivateKey, encryptedPassphra
         type: 'new_group_key',
         room: request.team_name,
         publicKey: request.team_public_key,
-        privateKey: privateKey.data
+        privateKey: privateKey.data,
+        name: request.team_nickname
       })
     })
   }
