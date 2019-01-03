@@ -95,7 +95,7 @@ export default class MainMenuDropdown extends Component {
       );
     }
     return (
-      <Dropdown icon='options' size='large' style={{flex: 0}} direction='left'>
+      <Dropdown item icon='options' size='large' style={{flex: 0}}>
         <Dropdown.Menu>
           <Dropdown.Item text='Change appearance' onClick={this.props.changeName}/>
           <Dropdown.Item text='Room settings' onClick={() => this.setState({...this.state, showRoomModal: true})} />

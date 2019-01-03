@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { Modal, Header, Form, Button, Icon, Loader } from 'semantic-ui-react'
+import { Redirect, Link } from 'react-router-dom';
 
 class SignUp extends Component {
   constructor(props) {
@@ -7,6 +8,7 @@ class SignUp extends Component {
     this.emailRef = React.createRef();
     this.passwordRef = React.createRef();
   }
+  
   componentDidMount() {
     if (!this.props.publicKey) {
       this.props.generateKey();
@@ -14,7 +16,12 @@ class SignUp extends Component {
   }
 
   render() {
-    if (!this.props.publicKey) {
+    if (this.props.signedIn) {
+      return (
+        <Redirect to='/' />
+      )
+    }
+    else if (!this.props.publicKey) {
       return (
         <Modal basic open={true} closeOnDimmerClick={false} size='small'>
           <Loader content='Generating secure key...' />
@@ -37,6 +44,11 @@ class SignUp extends Component {
           </Form>
         </Modal.Content>
         <Modal.Actions>
+          <Link to={'/'} >
+            <Button color='red' inverted >
+              <Icon name='arrow left' />Back
+            </Button>
+          </Link>
           <Button color='green' inverted onClick={() => this.props.action(this.emailRef.current.value, this.passwordRef.current.value)}>
             <Icon name='checkmark' />{this.props.actionName}
           </Button>

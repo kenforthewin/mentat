@@ -14,7 +14,7 @@ export default class MessageForm extends Component {
 
     this.formStyles = {
       // flex: '0 1 auto',
-      marginBottom: '30px',
+      marginBottom: '50px',
       // display: 'flex', 
       // alignItems: 'center',
       // height: '100%',

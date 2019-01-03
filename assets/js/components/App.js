@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Header, Modal, Loader } from 'semantic-ui-react'
+import { Header, Modal, Loader, Container } from 'semantic-ui-react'
 import { Socket, Presence } from "phoenix"
 import moment from 'moment'
 import ChatSegment from './ChatSegment';
@@ -15,6 +15,7 @@ import {addMessage,newUrl,newTag,refreshTags,removeTag} from '../actions/message
 import {addUser, setLastSynced} from '../actions/usersAction';
 import { generateKeypair, generateGroupKeypair, receiveGroupKeypair, burnBrowser, newGroupName } from '../actions/cryptoActions';
 import {persistor} from '../reducers/index';
+import Nav from './Nav';
 
 let openpgp =  require('openpgp');
 
@@ -28,8 +29,8 @@ class App extends Component {
     this.state = { 
       messageIds: [], 
       messages: [], 
-      tags: [], 
-      tagOptions: [],
+      tags: ['general'], 
+      tagOptions: ['general'],
       tagCounts: {},
       modalOpen: !this.props.userReducer.name || this.props.userReducer.name.length < 1, 
       updateType: 'append', 
@@ -211,7 +212,7 @@ class App extends Component {
           ...this.state,
           generatingGroupKey: true
         })
-        this.props.generateGroupKeypair(this.room)
+        this.props.generateGroupKeypair(this.room, payload.roomName)
       } else if (!payload.claimed){
         if (payload.encrypted_private_key) {
           this.props.receiveGroupKeypair(this.room, payload.group_public_key, payload.encrypted_private_key);
@@ -304,6 +305,7 @@ class App extends Component {
     this.channel.join()
       .receive("ok", resp => {
         if (this.props.cryptoReducer.groups[this.room]) {
+          console.log(resp)
           this.initializeMessages(resp.messages.messages);
           this.props.updateName(resp.name, resp.color);
           this.getTags(resp.tags.tags);
@@ -508,7 +510,7 @@ class App extends Component {
           return this.processTagFromInput(e);
         }
         const message = e.target.value;
-        let allTags = this.state.tags;
+        let allTags = this.state.tags.slice(0,1);
         const urls = this.props.userReducer.urlPreviews ? twitter.extractUrls(message).map((url) => url.startsWith('http') ? url : 'https://' + url) : [];
         const extractedTags = twitter.extractHashtags(message);
         extractedTags.forEach((extractedTag) => {
@@ -716,7 +718,10 @@ class App extends Component {
       return this.renderGate();
     }
     return (
-      <div style={this.mainStyles}>
+      <div style={{height: '100%'}}>
+        <Nav loggedIn={() => true} navApp={true} presences={this.state.presences} requests={this.state.requests} approveRequest={this.approveRequest} dismissRequest={this.dismissRequest} tags={this.state.tags} tagCounts={this.state.tagCounts} dropdownOptions={this.dropdownOptions} updateTags={this.updateTags} changeName={() => this.setState({...this.state, modalOpen: true})} burnBrowser={this.props.burnBrowser} updateRoomSettings={this.updateRoomSettings} generateUrls={this.props.userReducer.urlPreviews} currentName={this.props.cryptoReducer.groups[this.room] ? this.props.cryptoReducer.groups[this.room].nickname : ''} roomUuid={this.room} />
+        <Container style={{height: '100%'}}>
+        <div style={this.mainStyles} >
         <UserModal
             modalOpen={this.state.modalOpen}
             name={this.props.userReducer.name}
@@ -729,26 +734,6 @@ class App extends Component {
             showAvatar={!!this.props.cryptoReducer.groups[this.room]}
             currentUser={this.props.usersReducer.users[this.props.userReducer.uuid]} />
         <Loader active={this.state.messagesLoading} />
-        <div style={{flex: 0, display: 'flex', minHeight: '2.71428571em', alignItems: 'center'}}>
-          <OnlineUsersDropdown 
-              presences={this.state.presences} 
-              requests={this.state.requests} 
-              approveRequest={this.approveRequest} 
-              dismissRequest={this.dismissRequest} />
-          <TagsDropdown
-              tags={this.state.tags}
-              tagCounts={this.state.tagCounts}
-              dropdownOptions={this.dropdownOptions}
-              updateTags={this.updateTags}
-          />
-          <MainMenuDropdown
-              changeName={() => this.setState({...this.state, modalOpen: true})} 
-              burnBrowser={this.props.burnBrowser}
-              updateRoomSettings={this.updateRoomSettings}
-              generateUrls={this.props.userReducer.urlPreviews} 
-              currentName={this.props.cryptoReducer.groups[this.room] ? this.props.cryptoReducer.groups[this.room].nickname : ''}
-              roomUuid={this.room} />
-        </div>
         <ChatSegment
             messages={this.displayedMessages()} 
             lastMessageLoaded={this.state.lastMessageLoaded} 
@@ -768,6 +753,8 @@ class App extends Component {
         <MessageForm
             handleMessage={this.handleMessage} 
             textAreaNode={this.textAreaNode}/>
+        </div>
+        </Container>
       </div> );
   }
 }
@@ -788,7 +775,7 @@ const mapDispatchToProps = (dispatch) => {
     addMessage: (message) => dispatch(addMessage(message)),
     updateName: (name, color) => dispatch(updateName(name, color)),
     generateKeypair: () => dispatch(generateKeypair()),
-    generateGroupKeypair: (room) => dispatch(generateGroupKeypair(room)),
+    generateGroupKeypair: (room, name) => dispatch(generateGroupKeypair(room, name)),
     receiveGroupKeypair: (room, publicKey, encryptedPrivateKey, users = [], name = '') => dispatch(receiveGroupKeypair(room, publicKey, encryptedPrivateKey, users, name)),
     updateUrlPreviews: (urlPreviews) => dispatch(updateUrlPreviews(urlPreviews)),
     newGroupName: (room, nickname) => dispatch(newGroupName(room, nickname))

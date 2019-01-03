@@ -71,7 +71,7 @@ export const generateKeypair = () => {
   }
 }
 
-export const generateGroupKeypair = (room) => {
+export const generateGroupKeypair = (room, roomName) => {
   return (dispatch, getState) => {
     const options = {
       userIds: [{ name:'Example Example', email:'example@example.com' }],
@@ -86,7 +86,8 @@ export const generateGroupKeypair = (room) => {
         type: 'new_group_key',
         privateKey,
         publicKey,
-        room
+        room,
+        name: roomName
       });
     });
   }

@@ -3,9 +3,6 @@ import { Segment, Button, Header, Input, Icon, Form, Modal, Checkbox } from 'sem
 import { Link, Redirect } from 'react-router-dom';
 import uuidv1 from 'uuid/v1';
 import { connect } from 'react-redux';
-import SignUp from './SignUp'
-import { signUp, signIn } from '../actions/userActions'
-import { generateKeypair } from '../actions/cryptoActions'
 
 class Home extends Component {
   constructor(props) {
@@ -16,6 +13,8 @@ class Home extends Component {
     this.generateGroup = this.generateGroup.bind(this);
     this.redirectToGroup = this.redirectToGroup.bind(this);
     this.renderRecents = this.renderRecents.bind(this)
+    this.loggedIn = this.loggedIn.bind(this)
+    this.renderLoggedInNav = this.renderLoggedInNav.bind(this)
 
     this.inputGroupRef = React.createRef();
     this.nameInput = React.createRef();
@@ -29,6 +28,10 @@ class Home extends Component {
     this.segmentStyles = {
       flex: '1'
     }
+  }
+
+  loggedIn() {
+    return !!this.props.userReducer.token
   }
 
   generateGroup() {
@@ -74,12 +77,11 @@ class Home extends Component {
     if (Object.keys(groups).length < 1) {
       return null;
     }
-    console.log(Object.keys(groups))
     const recents = Object.keys(groups).map((group, i) => {
       return (<Button style={{marginBottom: '10px'}} key={i} basic disabled={this.state.buttonsDisabled} fluid onClick={() => this.redirectNamedGroup(group)}>{groups[group].nickname || group}</Button>);
     });
     return (
-      <Segment >
+      <Segment style={{maxHeight: '300px', overflowY: 'scroll'}}>
         <Header>Recent rooms</Header>
         {recents}
       </Segment>
@@ -105,6 +107,24 @@ class Home extends Component {
     )
   }
 
+  renderLoggedInNav() {
+    if (this.loggedIn()) {
+      return (
+        <div>
+          {this.renderRecents()}
+            <Segment>
+              <Header>Enter room code</Header>
+              <Input disabled={this.state.buttonsDisabled} icon={<Icon name='arrow right' inverted circular link onClick={this.redirectToGroup} />} fluid ref={ref => this.inputGroupRef = ref} />
+            </Segment>
+            <Segment>
+              <Header>Create a new room</Header>
+              <Button color='black' disabled={this.state.buttonsDisabled} fluid onClick={() => this.setState({ groupForm: true })}>Create room</Button>
+            </Segment>
+        </div>
+      )
+    }
+  }
+
   render() {
     if (this.state.groupReady) {
       return (
@@ -125,20 +145,7 @@ class Home extends Component {
       <div style={this.containerStyles}>
         <div style={{ alignSelf: 'flex-start' }} />
         <div style={this.segmentStyles}>
-          {/* <Button disabled={this.state.buttonsDisabled} primary fluid as={Link} to='/t/lobby'>Join Lobby</Button> */}
-          <Segment>
-            <Button onClick={() => this.setState({ signUp: true })}>Sign up</Button>
-            <Button onClick={() => this.setState({ signIn: true })}>Sign in</Button>
-          </Segment>
-          {this.renderRecents()}
-          <Segment>
-            <Header>Enter room code</Header>
-            <Input disabled={this.state.buttonsDisabled} icon={<Icon name='arrow right' inverted circular link onClick={this.redirectToGroup} />} fluid ref={ref => this.inputGroupRef = ref} />
-          </Segment>
-          <Segment>
-            <Header>Create a new room</Header>
-            <Button primary disabled={this.state.buttonsDisabled} fluid onClick={() => this.setState({ groupForm: true })}>Create room</Button>
-          </Segment>
+          {this.renderLoggedInNav()}
         </div>
         <div style={{ alignSelf: 'flex-end'  }} />
       </div>
@@ -151,12 +158,4 @@ const mapStateToProps = (state) => {
   return {cryptoReducer, userReducer};
 }
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    signUp: (email, password) => dispatch(signUp(email, password)),
-    signIn: (email, password) => dispatch(signIn(email, password)),
-    generateKeypair: () => dispatch(generateKeypair())
-  }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
+export default connect(mapStateToProps, {})(Home);

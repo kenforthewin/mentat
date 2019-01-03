@@ -21,8 +21,9 @@ defmodule AppWeb.RoomChannel do
     rendered_messages = MessageView.render("index.json", %{messages: messages})
     tags = Repo.all(
       from t in Tag, 
-      join: m in MessageTag, 
-      where: t.team_id == ^team.id and m.tag_id == t.id, 
+      left_join: m in MessageTag,
+      on: m.tag_id == t.id,
+      where: t.team_id == ^team.id, 
       select: %{name: t.name, message_count: count(m.id)},
       group_by: t.name,
       order_by: [desc: count(m.id)])
@@ -201,10 +202,10 @@ defmodule AppWeb.RoomChannel do
     if (!team.claim_id) do
       team = Team.changeset(team, %{claim_id: user.id})
       Repo.update!(team)
-      broadcast! socket, "new_claim_or_invite", %{uuid: user.id, claimed: true}
+      broadcast! socket, "new_claim_or_invite", %{uuid: user.id, claimed: true, roomName: team.nickname}
     else
       if team.claim_id == user.id do
-        broadcast! socket, "new_claim_or_invite", %{uuid: user.id, claimed: true}
+        broadcast! socket, "new_claim_or_invite", %{uuid: user.id, claimed: true, roomName: team.nickname}
       else
         request = Repo.one(from r in Request, where: r.user_id == ^user.id and r.team_id == ^team_id) || Repo.insert!(Request.changeset(%Request{}, %{user_public_key: public_key, user_id: user.id, team_id: team_id}))
         broadcast! socket, "new_claim_or_invite", %{uuid: user.id, claimed: false, name: name, public_key: public_key, encrypted_private_key: request.encrypted_team_private_key, group_public_key: request.team_public_key }

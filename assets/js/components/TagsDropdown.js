@@ -8,7 +8,7 @@ export default class OnlineUsersDropdown extends Component {
 
   render() {
     return (
-      <Dropdown multiple search selection closeOnChange options={this.props.dropdownOptions()} placeholder='Select a tag' value={this.props.tags} style={{ flex: 1, marginRight: '10px' }} onChange={this.props.updateTags}/>
+      <Dropdown multiple search selection closeOnChange options={this.props.dropdownOptions()} placeholder='Select a tag' value={this.props.tags} style={{ flex: 1, border: 0 }} onChange={this.props.updateTags}/>
     );
   }
 }

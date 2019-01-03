@@ -6,12 +6,16 @@ import {
   Redirect
 } from 'react-router-dom';
 import { ConnectedRouter as Router } from 'react-router-redux';
-import { Menu, Container, Modal, Header, Button, Icon } from 'semantic-ui-react';
+import { Menu, Container, Modal, Header, Button, Icon, Segment, Sidebar } from 'semantic-ui-react';
 import App from './App';
 import Home from './Home';
 import { Socket, Presence } from "phoenix"
 import { approveRequest, burnBrowser } from '../actions/cryptoActions'
 import {persistor} from '../reducers/index';
+import SignUp from './SignUp'
+import { signUp, signIn } from '../actions/userActions'
+import { generateKeypair } from '../actions/cryptoActions'
+import Nav from './Nav'
 
 let openpgp =  require('openpgp');
 
@@ -23,6 +27,9 @@ class Main extends Component {
     this.joinUserChannel = this.joinUserChannel.bind(this)
     this.approveUserRequest = this.approveUserRequest.bind(this)
     this.rejectUserRequest = this.rejectUserRequest.bind(this)
+    this.loggedIn = this.loggedIn.bind(this)
+    this.navApp = this.navApp.bind(this)
+    this.maybeRenderNav = this.maybeRenderNav.bind(this)
     this.pgpWorkerStarted = openpgp.initWorker({ path:'/js/openpgp.worker.min.js' })
   }
 
@@ -33,6 +40,8 @@ class Main extends Component {
       this.props.burnBrowser();
     }
   }
+
+
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (this.props.userReducer.token && !prevProps.userReducer.token) {
@@ -89,23 +98,25 @@ class Main extends Component {
     this.setState({ userRequests: this.state.userRequests.filter((e) => e.public_key !== publicKey) })
   }
 
-  renderNav() {
-    const { activeItem } = this.state;
-
-    return (
-      <Menu pointing secondary>
-        <Menu.Item name='home' active={activeItem === 'home'} onClick={this.handleItemClick} />
-        <Menu.Item name='notha' active={activeItem === 'notha'} onClick={this.handleItemClick} />
-        <Menu.Menu position='right'>
-          {/* <Menu.Item name='logout' active={activeItem === 'logout'} onClick={this.handleItemClick} /> */}
-        </Menu.Menu>
-      </Menu>
-    )
-  }
-
   rejectUserRequest(publicKey) {
     this.channel.push("reject_user_request", { publicKey })
     this.setState({ userRequests: this.state.userRequests.filter((e) => e.public_key !== publicKey) })
+  }
+
+  loggedIn() {
+    return !!this.props.userReducer.token
+  }
+
+  navApp() {
+    return this.props.routerReducer.location.pathname.startsWith('/t/');
+  }
+
+  maybeRenderNav() {
+    if (!this.navApp()) {
+      return (
+        <Nav loggedIn={this.loggedIn} navApp={false} burnBrowser={this.props.burnBrowser} />
+      )
+    }
   }
 
   render() {
@@ -113,6 +124,9 @@ class Main extends Component {
       return (
         <Modal basic open={true} closeOnDimmerClick={false} size='small'>
           <Header icon='user circle' content="Waiting for two-factor approval." />
+            <Modal.Actions>
+              <Button inverted color='red' content='Sign out' onClick={() => { this.setState({hasKeys: true}); this.props.burnBrowser() }}/>
+            </Modal.Actions>
         </Modal>
       )
     } else if (this.state.userRequests.length > 0) {
@@ -133,31 +147,43 @@ class Main extends Component {
     return (
       <Router history={this.props.history} >
         <div style={{ height: '100%' }}>
-          {/* {this.renderNav()} */}
-          <br />
-          <Container style={{ height: '100%' }}>
-            <Route
-              exact
-              path="/"
-              component={Home} />
-            <Route
-              exact
-              path="/t/:room"
-              component={App} />
-          </Container>
+          {this.maybeRenderNav()}
+          <Route
+            exact
+            path="/"
+            component={Home} />
+          <Route
+            exact
+            path="/t/:room"
+            component={App} />
+          <Route
+            exact
+            path='/sign-up'
+            render={ () =>
+              <SignUp signedIn={this.loggedIn()} action={this.props.signUp} actionName={'Sign up'} publicKey={this.props.cryptoReducer.publicKey} generateKey={this.props.generateKeypair}/>
+            } />
+          <Route
+            exact
+            path='/sign-in'
+            render={ () =>
+              <SignUp signedIn={this.loggedIn()} action={this.props.signIn} actionName={'Sign in'}  publicKey={this.props.cryptoReducer.publicKey}  generateKey={this.props.generateKeypair}/>
+            } />
         </div>
       </Router>
     );
   }
 }
 const mapStateToProps = (state) => {
-  const {cryptoReducer, userReducer} = state;
-  return {cryptoReducer, userReducer};
+  const {cryptoReducer, userReducer, routerReducer} = state;
+  return {cryptoReducer, userReducer, routerReducer};
 }
 const mapDispatchToProps = (dispatch) => {
   return {
     burnBrowser: () => persistor.purge() && dispatch(burnBrowser()),
-    approveRequest: (publicKey, encryptedPrivateKey, encryptedPassphrase, requests) => dispatch(approveRequest(publicKey, encryptedPrivateKey, encryptedPassphrase, requests))
+    approveRequest: (publicKey, encryptedPrivateKey, encryptedPassphrase, requests) => dispatch(approveRequest(publicKey, encryptedPrivateKey, encryptedPassphrase, requests)),
+    signIn: (email, password) => dispatch(signIn(email, password)),
+    signUp: (email, password) => dispatch(signUp(email, password)),
+    generateKeypair: () => dispatch(generateKeypair())
   }
 }
 
