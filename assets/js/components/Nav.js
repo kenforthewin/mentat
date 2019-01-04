@@ -94,7 +94,7 @@ export default class Nav extends Component {
             <Button basic color='red' inverted onClick={() => this.setState({...this.state, showModal: false})}>
               <Icon name='remove' /> No
             </Button>
-            <Button color='green' inverted onClick={() => { this.props.burnBrowser; this.setState({...this.state, showModal: false}) }} as={Link} to="/">
+            <Button color='green' inverted onClick={() => { this.props.burnBrowser(); this.setState({...this.state, showModal: false}) }} as={Link} to="/">
               <Icon name='checkmark' /> Yes
             </Button>
           </Modal.Actions>

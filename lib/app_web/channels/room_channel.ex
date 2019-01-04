@@ -6,7 +6,7 @@ defmodule AppWeb.RoomChannel do
   alias AppWeb.{MessageView, TagView, RequestView, Presence, UserView}
   alias Scrape.Website
 
-  def join("room:" <> private_room_id, %{"tags" => tags, "uuid" => uuid, "color" => color, "lastSynced" => last_synced}, socket) do
+  def join("room:" <> private_room_id, %{"tags" => tags}, socket) do
     team = Repo.one(from t in Team, where: t.name == ^private_room_id)
     tag_ids = Repo.all(from t in Tag, where: t.name in ^tags and t.team_id == ^team.id, select: t.id)
     user = Guardian.Phoenix.Socket.current_resource(socket)

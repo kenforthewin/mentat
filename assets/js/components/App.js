@@ -124,20 +124,16 @@ class App extends Component {
   async componentDidMount() {
     if (!this.props.userReducer.token) {
       this.props.burnBrowser()
-    }
-    if (this.props.cryptoReducer.publicKey) {
-      this.joinChannel();
     } else {
-      this.props.generateKeypair()
+      this.setupNotifications();
+      this.joinChannel();
     }
-
-    this.setupNotifications();
   }
 
   async joinChannel() {
     let socket = new Socket("/socket", {params: {token: this.props.userReducer.token}});
     socket.connect();
-    this.channel = socket.channel(`room:${this.room}`, {tags: this.state.tags, uuid: this.props.userReducer.uuid, color: this.props.userReducer.color, lastSynced: this.props.usersReducer.lastSynced});
+    this.channel = socket.channel(`room:${this.room}`, {tags: this.state.tags});
 
     this.channel.on("presence_state", state => {
       this.setState({

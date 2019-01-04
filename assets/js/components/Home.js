@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Segment, Button, Header, Input, Icon, Form, Modal, Checkbox } from 'semantic-ui-react'
+import { Segment, Button, Header, Input, Icon, Form, Modal, Checkbox, Container } from 'semantic-ui-react'
 import { Link, Redirect } from 'react-router-dom';
 import uuidv1 from 'uuid/v1';
 import { connect } from 'react-redux';
@@ -142,13 +142,17 @@ class Home extends Component {
       )
     }
     return (
-      <div style={this.containerStyles}>
-        <div style={{ alignSelf: 'flex-start' }} />
-        <div style={this.segmentStyles}>
-          {this.renderLoggedInNav()}
+      <Container>
+        <br />
+        <br />
+        <div style={this.containerStyles}>
+          <div style={{ alignSelf: 'flex-start' }} />
+          <div style={this.segmentStyles}>
+            {this.renderLoggedInNav()}
+          </div>
+          <div style={{ alignSelf: 'flex-end'  }} />
         </div>
-        <div style={{ alignSelf: 'flex-end'  }} />
-      </div>
+      </Container>
     );
   }
 }

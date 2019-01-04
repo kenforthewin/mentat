@@ -48,10 +48,10 @@ export const signUp = (email, password) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        uuid: state.userReducer.uuid,
         email,
         password,
-        publicKey: state.cryptoReducer.publicKey
+        publicKey: state.cryptoReducer.publicKey,
+        color: state.userReducer.color
       })
     }).then((response) => {
       return response.json();
@@ -59,7 +59,8 @@ export const signUp = (email, password) => {
       dispatch({
         type: 'sign_in',
         token: response.jwt,
-        id: response.id
+        id: response.id,
+        name: email
       })
     })
   }

@@ -45,8 +45,8 @@ export default class RenderedMessage extends Component {
           <Comment.Content>
             <Comment.Author as='a' style={{fontSize: '16px'}}>{this.props.name}</Comment.Author>
             <Comment.Metadata style={{fontSize: '12px'}}>
-              <TimeAgo date={moment.utc(this.props.timestamp)} minPeriod={15}/>
               {labels}
+              <TimeAgo date={moment.utc(this.props.timestamp)} minPeriod={15}/>
             </Comment.Metadata>
           <Comment.Text style={{fontSize: '16px'}}>
             <Linkify properties={{target: '_blank', rel: "nofollow"}}>

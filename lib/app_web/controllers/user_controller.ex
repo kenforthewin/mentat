@@ -7,8 +7,8 @@ defmodule AppWeb.UserController do
     |> login_reply(conn)
   end
 
-  def create(conn, %{"email" => email, "password" => password, "publicKey" => public_key}) do
-    Repo.insert!(User.changeset(%User{}, %{encrypted_password: password, email: email, public_key: public_key}))
+  def create(conn, %{"email" => email, "password" => password, "publicKey" => public_key, "color" => color}) do
+    Repo.insert!(User.changeset(%User{}, %{encrypted_password: password, email: email, public_key: public_key, color: color, name: email}))
     UserManager.authenticate_user(email, password)
     |> login_reply(conn)
   end
