@@ -27,14 +27,20 @@ export const signIn = (email, password) => {
     }).then((response) => {
       return response.json();
     }).then((response) => {
-      console.log(response)
-      dispatch({
-        type: 'sign_in',
-        token: response.jwt,
-        id: response.id,
-        name: response.name,
-        color: response.color
-      })
+      if (response.error) {
+        dispatch({
+          type: 'auth_errors',
+          errors: { email: ['or password incorrect.']}
+        })
+      } else {
+        dispatch({
+          type: 'sign_in',
+          token: response.jwt,
+          id: response.id,
+          name: response.name,
+          color: response.color
+        })
+      }
     })
   }
 }
@@ -56,12 +62,19 @@ export const signUp = (email, password) => {
     }).then((response) => {
       return response.json();
     }).then((response) => {
-      dispatch({
-        type: 'sign_in',
-        token: response.jwt,
-        id: response.id,
-        name: email
-      })
+      if (response.errors) {
+        dispatch({
+          type: 'auth_errors',
+          errors: response.errors
+        })
+      } else {
+        dispatch({
+          type: 'sign_in',
+          token: response.jwt,
+          id: response.id,
+          name: email
+        })
+      }
     })
   }
 }

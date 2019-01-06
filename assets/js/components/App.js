@@ -68,6 +68,7 @@ class App extends Component {
     this.syncUsers = this.syncUsers.bind(this);
     this.updateRoomSettings = this.updateRoomSettings.bind(this);
     this.addMessage = this.addMessage.bind(this);
+    this.receiveMessage = this.receiveMessage.bind(this);
     this.consumeClaim = this.consumeClaim.bind(this);
 
     this.nameInput = React.createRef();
@@ -249,37 +250,28 @@ class App extends Component {
     });
 
     this.channel.on("remove_tag", payload => {
-      this.props.removeTag(payload.id, payload.tag);
+      const currentMessage = this.props.messageReducer.messages[payload.id]
+      if (this.props.messageReducer.messages[payload.id]) {
+        this.props.removeTag(payload.id, payload.tag);
+        if (this.state.messageIds.includes(payload.id)) {
+          const tags = this.state.tagOptions;
+          const newMessageTags = currentMessage.tags.filter((e) => e !== payload.tag)
+          let postMessage = false;
+          newMessageTags.forEach((t) => {
+            postMessage = postMessage || this.state.tags.includes(t);
+          });
+          if (!postMessage) {
+            this.setState({
+              ...this.state,
+              messageIds: this.state.messageIds.filter((e) => e !== payload.id)
+            })
+          }
+        }
+      }
     });
 
     this.channel.on("new_msg", payload => {
-      let tags = this.state.tagOptions;
-      let postMessage = false;
-      payload.tags.forEach((t) => {
-        tags = tags.includes(t) ? tags : tags.concat([t]);
-        postMessage = postMessage || this.state.tags.includes(t);
-      });
-      if (this.state.tags.length === 0 || postMessage) {
-        this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
-        const options = {
-          message: openpgp.message.readArmored(payload.text),     // parse armored message
-          privateKeys: [this.privKeyObj]                            // for decryption
-        };
-        openpgp.decrypt(options).then((plaintext) => {
-          const newMessage = {id: payload.id, name: payload.name, text: plaintext.data, color: payload.color, timestamp: moment().format(), tags: payload.tags, uuid: payload.uuid }
-          this.props.addMessage(newMessage);
-          this.setState({
-            ...this.state,
-            tagOptions: tags,
-            messageIds: [
-              ...this.state.messageIds,
-              payload.id
-            ],
-            updateType: 'append'
-          });
-          this.maybeNotify(newMessage);
-        });
-      }
+      this.receiveMessage(payload)
     });
 
     this.channel.on("new_url_data", payload => {
@@ -287,15 +279,10 @@ class App extends Component {
     });
 
     this.channel.on("new_message_tag", payload => {
-      const newPossibleTags = this.state.tagOptions.includes(payload.new_tag) ? this.state.tagOptions : [
-        ...this.state.tagOptions,
-        payload.new_tag
-      ];
-      this.setState({
-        ...this.state,
-        tagOptions: newPossibleTags
-      })
-      this.props.newTag(payload.id, payload.new_tag);
+      if (this.props.messageReducer.messages[payload.id]) {
+        this.props.newTag(payload.id, payload.new_tag);
+      }
+      this.receiveMessage(payload)
     })
 
     this.channel.join()
@@ -324,18 +311,51 @@ class App extends Component {
       }).receive("error", resp => { console.log("Unable to join", resp) });
   }
 
+  receiveMessage(payload) {
+    let tags = this.state.tagOptions;
+    let postMessage = false;
+    payload.tags.forEach((t) => {
+      tags = tags.includes(t) ? tags : tags.concat([t]);
+      postMessage = postMessage || this.state.tags.includes(t);
+    });
+    if (this.state.tags.length === 0 || postMessage) {
+      const currentMessage = this.props.messageReducer.messages[payload.id]
+      if (!currentMessage) {
+        this.privKeyObj = this.privKeyObj || openpgp.key.readArmored(this.props.cryptoReducer.groups[this.room].privateKey).keys[0];
+        const options = {
+          message: openpgp.message.readArmored(payload.text),     // parse armored message
+          privateKeys: [this.privKeyObj]                            // for decryption
+        };
+        openpgp.decrypt(options).then((plaintext) => {
+          const newMessage = {id: payload.id, name: payload.name, text: plaintext.data, color: payload.color, timestamp: moment().format(), tags: payload.tags, uuid: payload.uuid }
+          this.props.addMessage(newMessage);
+          this.addMessage(newMessage, payload, tags)
+        });
+      } else {
+        this.addMessage(currentMessage, payload, tags)
+      }
+    }
+  }
+
   addMessage(message, payload, tags) {
-    this.props.addMessage(message);
-    this.setState({
-      ...this.state,
-      tagOptions: tags,
-      messageIds: [
+    if (!this.state.messageIds.includes(payload.id)) {
+      const messageIds = payload.id > this.state.messageIds[0] ? [
         ...this.state.messageIds,
         payload.id
-      ],
-      updateType: 'append'
-    });
-    this.maybeNotify(message);
+      ] : this.state.messageIds
+      this.setState({
+        ...this.state,
+        tagOptions: tags,
+        messageIds: messageIds.sort((a, b) => a - b),
+        updateType: 'append'
+      });
+      this.maybeNotify(message);
+    } else {
+      this.setState({
+        ...this.state,
+        tagOptions: tags
+      })
+    }
   }
 
   async syncUsers(users) {
@@ -714,7 +734,7 @@ class App extends Component {
       return this.renderGate();
     }
     return (
-      <div style={{height: '100%'}}>
+      <div style={{height: '100%', overflow: 'hidden'}}>
         <Nav loggedIn={() => true} navApp={true} presences={this.state.presences} requests={this.state.requests} approveRequest={this.approveRequest} dismissRequest={this.dismissRequest} tags={this.state.tags} tagCounts={this.state.tagCounts} dropdownOptions={this.dropdownOptions} updateTags={this.updateTags} changeName={() => this.setState({...this.state, modalOpen: true})} burnBrowser={this.props.burnBrowser} updateRoomSettings={this.updateRoomSettings} generateUrls={this.props.userReducer.urlPreviews} currentName={this.props.cryptoReducer.groups[this.room] ? this.props.cryptoReducer.groups[this.room].nickname : ''} roomUuid={this.room} />
         <Container style={{height: '100%'}}>
         <div style={this.mainStyles} >

@@ -104,7 +104,7 @@ export default class Nav extends Component {
 
     return (
       <Menu attached='top' >
-        <Link to={'/'}><Menu.Item header>Mentat</Menu.Item></Link>
+        <Link to={'/'}><Menu.Item header>Home</Menu.Item></Link>
         {this.renderOnlineUsersDropdown()}
         {this.renderTagsDropdown()}
         <Menu.Menu position='right'>

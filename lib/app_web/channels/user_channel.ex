@@ -35,7 +35,10 @@ defmodule AppWeb.UserChannel do
           _ ->
             user_requests = Repo.all(from r in UserRequest, where: r.user_id == ^user.id and is_nil(r.encrypted_private_key) and not r.rejected)
             rendered_user_requests = AppWeb.UserRequestView.render("index.json", %{user_requests: user_requests})
-            {:ok, %{has_keys: has_keys, user_requests: rendered_user_requests}, socket}
+            requests = Repo.all(from r in Request, where: r.user_id == ^user.id and not is_nil(r.encrypted_team_private_key))
+            requests = Repo.preload requests, [:user, :team]
+            rendered_requests = AppWeb.RequestView.render("index.json", %{requests: requests})
+            {:ok, %{has_keys: has_keys, user_requests: rendered_user_requests, requests: rendered_requests}, socket}
         end
     end
   end

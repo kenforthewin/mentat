@@ -10,7 +10,7 @@ import { Menu, Container, Modal, Header, Button, Icon, Segment, Sidebar } from '
 import App from './App';
 import Home from './Home';
 import { Socket, Presence } from "phoenix"
-import { approveRequest, burnBrowser } from '../actions/cryptoActions'
+import { approveRequest, burnBrowser, receiveGroupKeypair } from '../actions/cryptoActions'
 import {persistor} from '../reducers/index';
 import SignUp from './SignUp'
 import { signUp, signIn } from '../actions/userActions'
@@ -66,11 +66,17 @@ class Main extends Component {
     })
     this.channel.join()
       .receive("ok", resp => {
+        console.log(resp)
         this.setState({hasKeys: resp.has_keys})
         if (!resp.has_keys && resp.encrypted_private_key) {
           this.props.approveRequest(resp.public_key, resp.encrypted_private_key, resp.encrypted_passphrase, resp.requests);
         } else if (resp.has_keys) {
           this.setState({ userRequests: resp.user_requests.user_requests })
+          resp.requests.requests.forEach((request) => {
+            if (!this.props.cryptoReducer.groups[request.name]) {
+              this.props.receiveGroupKeypair(request.team_name, request.team_public_key, request.encrypted_team_private_key, [], request.team_nickname)
+            }
+          })
         }
       })
   }
@@ -108,7 +114,7 @@ class Main extends Component {
   }
 
   navApp() {
-    return this.props.routerReducer.location.pathname.startsWith('/t/');
+    return this.props.routerReducer.location && this.props.routerReducer.location.pathname.startsWith('/t/');
   }
 
   maybeRenderNav() {
@@ -160,13 +166,13 @@ class Main extends Component {
             exact
             path='/sign-up'
             render={ () =>
-              <SignUp signedIn={this.loggedIn()} action={this.props.signUp} actionName={'Sign up'} publicKey={this.props.cryptoReducer.publicKey} generateKey={this.props.generateKeypair}/>
+              <SignUp signedIn={this.loggedIn()} errors={this.props.userReducer.authErrors} action={this.props.signUp} actionName={'Sign up'} publicKey={this.props.cryptoReducer.publicKey} generateKey={this.props.generateKeypair}/>
             } />
           <Route
             exact
             path='/sign-in'
             render={ () =>
-              <SignUp signedIn={this.loggedIn()} action={this.props.signIn} actionName={'Sign in'}  publicKey={this.props.cryptoReducer.publicKey}  generateKey={this.props.generateKeypair}/>
+              <SignUp errors={this.props.userReducer.authErrors} signedIn={this.loggedIn()} action={this.props.signIn} actionName={'Sign in'}  publicKey={this.props.cryptoReducer.publicKey}  generateKey={this.props.generateKeypair}/>
             } />
         </div>
       </Router>
@@ -183,7 +189,8 @@ const mapDispatchToProps = (dispatch) => {
     approveRequest: (publicKey, encryptedPrivateKey, encryptedPassphrase, requests) => dispatch(approveRequest(publicKey, encryptedPrivateKey, encryptedPassphrase, requests)),
     signIn: (email, password) => dispatch(signIn(email, password)),
     signUp: (email, password) => dispatch(signUp(email, password)),
-    generateKeypair: () => dispatch(generateKeypair())
+    generateKeypair: () => dispatch(generateKeypair()),
+    receiveGroupKeypair: (room, publicKey, encryptedPrivateKey, users = [], name = '') => dispatch(receiveGroupKeypair(room, publicKey, encryptedPrivateKey, users, name))
   }
 }
 

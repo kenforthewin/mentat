@@ -131,20 +131,17 @@ defmodule AppWeb.RoomChannel do
 
   def handle_in("new_message_tag", %{"id" => id, "newTag" => new_tag}, socket) do
     team_id = socket.assigns.team_id
-    tag = Repo.one(from t in Tag, where: t.team_id == ^team_id and t.name == ^new_tag)
-    if !tag do
-      tag = Tag.changeset(%Tag{}, %{team_id: team_id, name: new_tag})
-      tag = Repo.insert! tag
+    tag = Repo.one(from t in Tag, where: t.team_id == ^team_id and t.name == ^new_tag) || Repo.insert!(Tag.changeset(%Tag{}, %{team_id: team_id, name: new_tag}))
+    message_tag = Repo.one(from t in MessageTag, where: t.tag_id == ^tag.id and t.message_id == ^id)
+    if !message_tag do
       message_tag = MessageTag.changeset(%MessageTag{}, %{message_id: id, tag_id: tag.id})
       Repo.insert!(message_tag)
-      broadcast! socket, "new_message_tag", %{id: id, new_tag: new_tag}
-    else
-      message_tag = Repo.one(from t in MessageTag, where: t.tag_id == ^tag.id and t.message_id == ^id)
-      if !message_tag do
-        message_tag = MessageTag.changeset(%MessageTag{}, %{message_id: id, tag_id: tag.id})
-        Repo.insert!(message_tag)
-        broadcast! socket, "new_message_tag", %{id: id, new_tag: new_tag}
-      end
+      message = Repo.one(from m in Message, where: m.id == ^id)
+      message = Repo.preload message, [:user, :message_tags]
+      tag_ids = Enum.map(message.message_tags, fn mt -> mt.tag_id end)
+      tags = Repo.all(from t in Tag, where: t.id in ^tag_ids)
+      tag_names = Enum.map(tags, fn t -> t.name end)
+      broadcast! socket, "new_message_tag", %{id: id, new_tag: new_tag, text: message.body, name: message.user.name, color: message.user.color, tags: tag_names, uuid: message.user.id}
     end
     {:reply, {:ok, %{}}, socket}
   end

@@ -3,6 +3,7 @@ import { Segment, Button, Header, Input, Icon, Form, Modal, Checkbox, Container 
 import { Link, Redirect } from 'react-router-dom';
 import uuidv1 from 'uuid/v1';
 import { connect } from 'react-redux';
+import HomepageLayout from './HomepageLayout'
 
 class Home extends Component {
   constructor(props) {
@@ -126,21 +127,27 @@ class Home extends Component {
   }
 
   render() {
-    if (this.state.groupReady) {
+    if (!this.loggedIn()) {
+      return (
+        <HomepageLayout />
+      )
+    }
+    else if (this.state.groupReady) {
       return (
         <Redirect to={`/t/${this.state.groupUuid}`} push />
       )
     } else if (this.state.groupForm) {
       return this.renderGroupModal()
-    } else if (this.state.signUp && !this.props.userReducer.token) {
-      return (
-        <SignUp action={this.props.signUp} actionName={'Sign up'} publicKey={this.props.cryptoReducer.publicKey} generateKey={this.props.generateKeypair}/>
-      )
-    } else if (this.state.signIn && !this.props.userReducer.token) {
-      return (
-        <SignUp action={this.props.signIn} actionName={'Sign in'}  publicKey={this.props.cryptoReducer.publicKey}  generateKey={this.props.generateKeypair}/>
-      )
     }
+    // else if (this.state.signUp && !this.props.userReducer.token) {
+    //   return (
+    //     <SignUp action={this.props.signUp} actionName={'Sign up'} publicKey={this.props.cryptoReducer.publicKey} generateKey={this.props.generateKeypair}/>
+    //   )
+    // } else if (this.state.signIn && !this.props.userReducer.token) {
+    //   return (
+    //     <SignUp action={this.props.signIn} actionName={'Sign in'}  publicKey={this.props.cryptoReducer.publicKey}  generateKey={this.props.generateKeypair}/>
+    //   )
+    // }
     return (
       <Container>
         <br />
