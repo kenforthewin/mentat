@@ -7,6 +7,33 @@ export const burnBrowser = () => {
   }
 }
 
+export const importKey = (publicKey, privateKey, passphrase, requests) => {
+  return async (dispatch, _) => {
+    dispatch({
+      type: 'new_key',
+      publicKey,
+      privateKey,
+      passphrase
+    })
+    const privKeyObj = openpgp.key.readArmored(privateKey).keys[0];
+    await privKeyObj.decrypt(passphrase)
+    requests.requests.forEach(async (request) => {
+      const privateGroupKeyOptions = {
+        message: openpgp.message.readArmored(request.encrypted_team_private_key),
+        privateKeys: [privKeyObj]
+      };
+      const privateKey = await openpgp.decrypt(privateGroupKeyOptions)
+      dispatch({
+        type: 'new_group_key',
+        room: request.team_name,
+        publicKey: request.team_public_key,
+        privateKey: privateKey.data,
+        name: request.team_nickname
+      })
+    })
+  }
+}
+
 export const approveRequest = (publicKey, encryptedPrivateKey, encryptedPassphrase, requests) => {
   return async (dispatch, getState) => {
     const state = getState();

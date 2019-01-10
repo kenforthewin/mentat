@@ -13,7 +13,11 @@ export default (state = INITIAL_STATE, action) => {
           ...state.messages,
           [action.id]: {
             ...state.messages[action.id],
-            ...action.message
+            ...action.message,
+            tags: [
+              ...action.message.tags,
+              ...(state.messages[action.id] && state.messages[action.id].tags ? state.messages[action.id].tags : [])
+            ]
           }
         }
       }
@@ -36,7 +40,7 @@ export default (state = INITIAL_STATE, action) => {
           [action.id]: {
             ...state.messages[action.id],
             tags: [
-              ...state.messages[action.id].tags,
+              ...(state.messages[action.id].tags || []),
               action.tag
             ]
           }

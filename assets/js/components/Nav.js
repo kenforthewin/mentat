@@ -73,6 +73,7 @@ export default class Nav extends Component {
       return (
         <Dropdown item icon='options' size='large' style={{flex: 0}}>
           <Dropdown.Menu>
+            <Dropdown.Item text='Export keyfile' as={Link} to={"/export-key"} />
             <Dropdown.Item text='Delete local storage' onClick={() => this.setState({...this.state, showModal: true})} />
           </Dropdown.Menu>
         </Dropdown>

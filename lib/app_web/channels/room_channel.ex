@@ -81,10 +81,12 @@ defmodule AppWeb.RoomChannel do
             {_, type} = List.keyfind(headers, "content-type", 0) || List.keyfind(headers, "Content-Type", 0)
             cond do
               type |> String.starts_with?("image") ->
-                %{content_type: type, url: request_url, show: true}
+                %{content_type: type, url: request_url, show: true, tag: "image"}
               type |> String.starts_with?("text/html") ->
                 parse = Website.parse(body, request_url)
-                %{content_type: type, url: request_url, title: parse.title, description: parse.description, image: parse.image, show: true}
+                og_type = Floki.find(body, "meta[property='og:type']") |> Floki.attribute("content") |> List.first
+                # Logger.debug og_type
+                %{content_type: type, url: request_url, title: parse.title, description: parse.description, image: parse.image, show: true, tag: og_type}
               true ->
                 %{show: false}
             end
@@ -99,7 +101,17 @@ defmodule AppWeb.RoomChannel do
     message = Message.changeset(message, %{url_data: rendered_url})
     message = Repo.update!(message)
     if rendered_url.show do
-      broadcast! socket, "new_url_data", %{id: message.id, url_data: rendered_url}
+      if rendered_url.tag do
+        tag = Repo.one(from t in Tag, where: t.team_id == ^team_id and t.name == ^rendered_url.tag) || Repo.insert!(Tag.changeset(%Tag{}, %{team_id: team_id, name: rendered_url.tag}))
+        message_tag = Repo.one(from t in MessageTag, where: t.tag_id == ^tag.id and t.message_id == ^message.id)
+        if !message_tag do
+          message_tag = MessageTag.changeset(%MessageTag{}, %{message_id: message.id, tag_id: tag.id})
+          Repo.insert!(message_tag)
+          broadcast! socket, "new_url_data", %{id: message.id, url_data: rendered_url, tag: rendered_url.tag}
+        else
+          broadcast! socket, "new_url_data", %{id: message.id, url_data: rendered_url}
+        end
+      end
     end
     if Enum.any? final_tags do
       tags = Repo.all(

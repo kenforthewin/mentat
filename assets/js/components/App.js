@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { Header, Modal, Loader, Container } from 'semantic-ui-react'
 import { Socket, Presence } from "phoenix"
+import { Redirect } from 'react-router-dom';
 import moment from 'moment'
 import ChatSegment from './ChatSegment';
 import { connect } from 'react-redux';
@@ -29,7 +30,7 @@ class App extends Component {
     this.state = { 
       messageIds: [], 
       messages: [], 
-      tags: ['general'], 
+      tags: [], 
       tagOptions: ['general'],
       tagCounts: {},
       modalOpen: !this.props.userReducer.name || this.props.userReducer.name.length < 1, 
@@ -260,7 +261,7 @@ class App extends Component {
           newMessageTags.forEach((t) => {
             postMessage = postMessage || this.state.tags.includes(t);
           });
-          if (!postMessage) {
+          if (!postMessage && !newMessageTags.length === 0) {
             this.setState({
               ...this.state,
               messageIds: this.state.messageIds.filter((e) => e !== payload.id)
@@ -275,7 +276,8 @@ class App extends Component {
     });
 
     this.channel.on("new_url_data", payload => {
-      this.props.newUrl(payload.id, payload.url_data);
+      console.log(payload)
+      this.props.newUrl(payload.id, payload.url_data, payload.tag);
     });
 
     this.channel.on("new_message_tag", payload => {
@@ -339,7 +341,7 @@ class App extends Component {
 
   addMessage(message, payload, tags) {
     if (!this.state.messageIds.includes(payload.id)) {
-      const messageIds = payload.id > this.state.messageIds[0] ? [
+      const messageIds = (this.state.messageIds.length === 0 || payload.id > this.state.messageIds[0]) ? [
         ...this.state.messageIds,
         payload.id
       ] : this.state.messageIds
@@ -429,7 +431,7 @@ class App extends Component {
   }
 
   componentWillUnmount() {
-    this.channel.leave();
+    this.channel && this.channel.leave();
   }
 
   getTags(tags) {
@@ -565,36 +567,36 @@ class App extends Component {
   }
 
   processTagFromInput(e) {
-    if (e.target.value[1] === '#') {
-      const soleTag = e.target.value.slice(2);
-      const newPossibleTags = this.state.tagOptions.includes(soleTag) ? this.state.tagOptions : [
-        ...this.state.tagOptions,
-        soleTag
-      ];
-      e.target.value = null;
-      return this.pushNewTags([soleTag], newPossibleTags)
-    }
-
-    const newTag = e.target.value.slice(1);
-    e.target.value = null;
-    const newTags = this.state.tags.includes(newTag) ? this.state.tags : [
-      ...this.state.tags,
-      newTag
-    ];
-    const newPossibleTags = this.state.tagOptions.includes(newTag) ? this.state.tagOptions : [
+    // if (e.target.value[1] === '#') {
+    const soleTag = e.target.value.slice(1);
+    const newPossibleTags = this.state.tagOptions.includes(soleTag) ? this.state.tagOptions : [
       ...this.state.tagOptions,
-      newTag
+      soleTag
     ];
-    this.pushNewTags(newTags, newPossibleTags);
+    e.target.value = null;
+    return this.pushNewTags([soleTag], newPossibleTags)
+    // }
+
+    // const newTag = e.target.value.slice(1);
+    // e.target.value = null;
+    // const newTags = this.state.tags.includes(newTag) ? this.state.tags : [
+    //   ...this.state.tags,
+    //   newTag
+    // ];
+    // const newPossibleTags = this.state.tagOptions.includes(newTag) ? this.state.tagOptions : [
+    //   ...this.state.tagOptions,
+    //   newTag
+    // ];
+    // this.pushNewTags(newTags, newPossibleTags);
   }
 
   clickTag(e) {
     const tag = e.target.text;
-    const newTags = this.state.tags.includes(tag) ? this.state.tags : [
-      ...this.state.tags,
-      tag
-    ];
-    this.pushNewTags(newTags);
+    // const newTags = this.state.tags.includes(tag) ? this.state.tags : [
+    //   ...this.state.tags,
+    //   tag
+    // ];
+    this.pushNewTags([tag]);
   }
 
   updateTags(e, data) {
@@ -727,6 +729,9 @@ class App extends Component {
   }
 
   render() {
+    if (!this.props.userReducer.token) {
+      return ( <Redirect to={`/sign-up?t=${this.room}`} /> )
+    }
     if (!this.props.cryptoReducer.publicKey || this.state.generatingGroupKey) {
       return this.renderLoadingKey();
     }
@@ -787,7 +792,7 @@ const mapDispatchToProps = (dispatch) => {
     refreshTags: (id, tags) => dispatch(refreshTags(id, tags)),
     newTag: (id, tag) => dispatch(newTag(id, tag)),
     removeTag: (id, tag) => dispatch(removeTag(id, tag)),
-    newUrl: (id, urlData) => dispatch(newUrl(id, urlData)),
+    newUrl: (id, urlData, tag) => dispatch(newUrl(id, urlData, tag)),
     addMessage: (message) => dispatch(addMessage(message)),
     updateName: (name, color) => dispatch(updateName(name, color)),
     generateKeypair: () => dispatch(generateKeypair()),

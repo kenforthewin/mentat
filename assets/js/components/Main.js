@@ -14,8 +14,9 @@ import { approveRequest, burnBrowser, receiveGroupKeypair } from '../actions/cry
 import {persistor} from '../reducers/index';
 import SignUp from './SignUp'
 import { signUp, signIn } from '../actions/userActions'
-import { generateKeypair } from '../actions/cryptoActions'
+import { generateKeypair, importKey } from '../actions/cryptoActions'
 import Nav from './Nav'
+import ExportKey from './ExportKey'
 
 let openpgp =  require('openpgp');
 
@@ -30,6 +31,9 @@ class Main extends Component {
     this.loggedIn = this.loggedIn.bind(this)
     this.navApp = this.navApp.bind(this)
     this.maybeRenderNav = this.maybeRenderNav.bind(this)
+    this.handleFile = this.handleFile.bind(this)
+    
+    this.fileRef = React.createRef()
     this.pgpWorkerStarted = openpgp.initWorker({ path:'/js/openpgp.worker.min.js' })
   }
 
@@ -125,6 +129,22 @@ class Main extends Component {
     }
   }
 
+  handleFile() {
+    const file = this.fileRef.current.files[0]
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const { publicKey, privateKey, passphrase } = JSON.parse(e.target.result)
+
+      this.channel.push("approve_import_key", { devicePublicKey: this.props.cryptoReducer.publicKey, userPublicKey: publicKey })
+        .receive("ok", (resp) => {
+          this.props.importKey(publicKey, privateKey, passphrase, resp.requests)
+          this.setState({ hasKeys: true })
+        })
+    };
+    reader.readAsText(file);
+  }
+
   render() {
     if (!this.state.hasKeys) {
       return (
@@ -132,6 +152,8 @@ class Main extends Component {
           <Header icon='user circle' content="Waiting for two-factor approval." />
             <Modal.Actions>
               <Button inverted color='red' content='Sign out' onClick={() => { this.setState({hasKeys: true}); this.props.burnBrowser() }}/>
+              <input type="file" accept="application/json" style={{display: 'none'}} onChange={this.handleFile} ref={this.fileRef}></input>
+              <Button inverted color='blue' onClick={() => this.fileRef.current.click()}>Import key</Button>
             </Modal.Actions>
         </Modal>
       )
@@ -164,6 +186,10 @@ class Main extends Component {
             component={App} />
           <Route
             exact
+            path="/export-key"
+            component={ExportKey} />
+          <Route
+            exact
             path='/sign-up'
             render={ () =>
               <SignUp signedIn={this.loggedIn()} errors={this.props.userReducer.authErrors} action={this.props.signUp} actionName={'Sign up'} publicKey={this.props.cryptoReducer.publicKey} generateKey={this.props.generateKeypair}/>
@@ -187,6 +213,7 @@ const mapDispatchToProps = (dispatch) => {
   return {
     burnBrowser: () => persistor.purge() && dispatch(burnBrowser()),
     approveRequest: (publicKey, encryptedPrivateKey, encryptedPassphrase, requests) => dispatch(approveRequest(publicKey, encryptedPrivateKey, encryptedPassphrase, requests)),
+    importKey: (publicKey, privateKey, passphrase, requests) => dispatch(importKey(publicKey, privateKey, passphrase, requests)),
     signIn: (email, password) => dispatch(signIn(email, password)),
     signUp: (email, password) => dispatch(signUp(email, password)),
     generateKeypair: () => dispatch(generateKeypair()),

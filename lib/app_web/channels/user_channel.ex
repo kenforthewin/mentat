@@ -61,6 +61,21 @@ defmodule AppWeb.UserChannel do
     {:reply, {:ok, %{}}, socket}
   end
 
+  def handle_in("approve_import_key", %{"devicePublicKey" => public_key, "userPublicKey" => user_public_key}, socket) do
+    user = Guardian.Phoenix.Socket.current_resource(socket)
+    user_request = Repo.one(from r in UserRequest, where: r.public_key == ^public_key and r.user_id == ^user.id)
+
+    if user_public_key == user.public_key do
+      Repo.update!(UserRequest.changeset(user_request, %{encrypted_private_key: "---"}))
+      requests = Repo.all(from r in Request, where: r.user_id == ^user.id)
+      requests = Repo.preload requests, [:user, :team]
+      rendered_requests = AppWeb.RequestView.render("index.json", %{requests: requests})
+      {:reply, {:ok, %{requests: rendered_requests}}, socket}
+    else
+      {:reply, {:error, %{}}, socket}
+    end
+  end
+
   def handle_info(:after_join, socket) do
     broadcast! socket, "user_request", %{public_key: socket.assigns.public_key}
     {:noreply, socket}

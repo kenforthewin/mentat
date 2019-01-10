@@ -6,11 +6,21 @@ export const addMessage = (message) => {
   }
 };
 
-export const newUrl = (id, urlData) => {
-  return {
-    type: 'new_url',
-    id,
-    urlData
+export const newUrl = (id, urlData, tag) => {
+  return (dispatch, _) => {
+    dispatch({
+      type: 'new_url',
+      id,
+      urlData
+    })
+
+    if (tag) {
+      dispatch({
+        type: 'new_tag',
+        id,
+        tag
+      })
+    }
   }
 };
 

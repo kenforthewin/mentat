@@ -19,6 +19,7 @@
     "cropperjs": "^1.4.0",
     "emoji-js": "^3.4.0",
     "emoji-mart": "^2.6.1",
+    "file-saver": "^2.0.0",
     "huebee": "^2.0.0",
     "moment": "^2.22.1",
     "openpgp": "3.0.9",
