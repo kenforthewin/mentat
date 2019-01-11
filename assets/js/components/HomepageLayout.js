@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Button,
   Container,
@@ -24,7 +25,7 @@ const HomepageHeading = ({ mobile }) => (
   <Container text>
     <Header
       as='h1'
-      content='Mentat'
+      content='Metachat'
       inverted
       style={{
         fontSize: mobile ? '2em' : '4em',
@@ -43,7 +44,7 @@ const HomepageHeading = ({ mobile }) => (
         marginTop: mobile ? '0.5em' : '1.5em',
       }}
     />
-    <Button primary size='huge'>
+    <Button primary size='huge' as={Link} to='/sign-up'>
       Try it out
       <Icon name='right arrow' />
     </Button>
@@ -136,34 +137,27 @@ const HomepageLayout = () => (
     <Segment style={{ padding: '8em 0em' }} vertical>
       <Grid container stackable verticalAlign='middle'>
         <Grid.Row>
-          <Grid.Column width={8}>
+          <Grid.Column width={6}>
             <Header as='h3' style={{ fontSize: '2em' }}>
-              We Help Companies and Companions
+              Chat smarter.
             </Header>
             <p style={{ fontSize: '1.33em' }}>
-              We can give your company superpowers to do things that they never thought possible.
-              Let us delight your customers and empower your needs... through pure data analytics.
+              Tag messages to create channels of content on the fly. Dynamically categorize your conversations, allowing quick retrieval of the content that matters to you. Metachat intelligently groups your shared links for you.
             </p>
             <Header as='h3' style={{ fontSize: '2em' }}>
-              We Make Bananas That Can Dance
+              Privacy matters.
             </Header>
             <p style={{ fontSize: '1.33em' }}>
-              Yes that's right, you thought it was the stuff of dreams, but even bananas can be
-              bioengineered.
+              Your messages on Metachat are end-to-end encrypted: only the members of your group have access to your content.
             </p>
           </Grid.Column>
-          <Grid.Column floated='right' width={6}>
-            <Image bordered rounded size='large' src='/images/wireframe/white-image.png' />
-          </Grid.Column>
-        </Grid.Row>
-        <Grid.Row>
-          <Grid.Column textAlign='center'>
-            <Button size='huge'>Check Them Out</Button>
+          <Grid.Column floated='right' width={10}>
+            <Image bordered rounded size='massive' src='https://storage.googleapis.com/brrrr/ghosty/Screen%20Shot%202019-01-10%20at%209.21.47%20PM.png' />
           </Grid.Column>
         </Grid.Row>
       </Grid>
     </Segment>
-    <Segment style={{ padding: '0em' }} vertical>
+    {/* <Segment style={{ padding: '0em' }} vertical>
       <Grid celled='internally' columns='equal' stackable>
         <Grid.Row textAlign='center'>
           <Grid.Column style={{ paddingBottom: '5em', paddingTop: '5em' }}>
@@ -217,7 +211,7 @@ const HomepageLayout = () => (
           I'm Still Quite Interested
         </Button>
       </Container>
-    </Segment>
+    </Segment> */}
     <Segment inverted vertical style={{ padding: '5em 0em' }}>
       <Container>
         <Grid divided inverted stackable>
@@ -225,13 +219,10 @@ const HomepageLayout = () => (
             <Grid.Column width={3}>
               <Header inverted as='h4' content='About' />
               <List link inverted>
-                <List.Item as='a'>Sitemap</List.Item>
-                <List.Item as='a'>Contact Us</List.Item>
-                <List.Item as='a'>Religious Ceremonies</List.Item>
-                <List.Item as='a'>Gazebo Plans</List.Item>
+                <List.Item as='a' href="mailto:bergquist.kenneth@gmail.com">Contact Us</List.Item>
               </List>
             </Grid.Column>
-            <Grid.Column width={3}>
+            {/* <Grid.Column width={3}>
               <Header inverted as='h4' content='Services' />
               <List link inverted>
                 <List.Item as='a'>Banana Pre-Order</List.Item>
@@ -239,14 +230,14 @@ const HomepageLayout = () => (
                 <List.Item as='a'>How To Access</List.Item>
                 <List.Item as='a'>Favorite X-Men</List.Item>
               </List>
-            </Grid.Column>
+            </Grid.Column> */}
             <Grid.Column width={7}>
-              <Header as='h4' inverted>
+              {/* <Header as='h4' inverted>
                 Footer Header
               </Header>
               <p>
                 Extra space for a call to action inside the footer that could help re-engage users.
-              </p>
+              </p> */}
             </Grid.Column>
           </Grid.Row>
         </Grid>
