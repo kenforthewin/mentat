@@ -37,17 +37,6 @@ export default (state = INITIAL_STATE, action) => {
           }
         }
       }
-    case 'set_public':
-      return {
-        ...state,
-        groups: {
-          ...state.groups,
-          [action.room]: {
-            ...state.groups[action.room],
-            public: true
-          }
-        }
-      }
     case 'burn_browser':
       return INITIAL_STATE;
     default:

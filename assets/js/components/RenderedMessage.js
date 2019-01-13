@@ -18,8 +18,6 @@ export default class RenderedMessage extends Component {
     if (this.props.urlData && this.props.urlData.show) {
       return <RenderedUrl urlData={this.props.urlData} key={1} scrollDown={this.props.scrollDown}/>
     }
-
-    return null;
   }
 
   maybeRenderAvatar() {
@@ -33,7 +31,7 @@ export default class RenderedMessage extends Component {
   render() {
     let labels = this.props.tags.map((t, i) => {
       return (
-        <Popup basic key={i} trigger={<Label size="mini" as='a' onClick={this.props.onTagClick}>{t}</Label>} hoverable size='mini' content={<Button icon='trash' compact size='mini' color='red' onClick={() => { this.props.removeMessageTag(this.props.id, t) }}/>}/>
+        <Popup basic key={i} trigger={<Label size="mini" as='a' onClick={this.props.onTagClick}>{t}</Label>} hoverable size='mini' content={<Button inverted icon='remove' compact size='mini' color='red' onClick={() => { this.props.removeMessageTag(this.props.id, t) }}/>}/>
       )
     });
     labels[labels.length] = <Label key={labels.length + 1} size='mini'><Input className='newTagInput' onKeyPress={(e) => this.props.handleNewTagOnMessage(e, this.props.id)} transparent placeholder='+'/></Label>
@@ -49,10 +47,10 @@ export default class RenderedMessage extends Component {
               <TimeAgo date={moment.utc(this.props.timestamp)} minPeriod={15}/>
             </Comment.Metadata>
           <Comment.Text style={{fontSize: '16px'}}>
+            {this.maybeRenderUrl()}
             <Linkify properties={{target: '_blank', rel: "nofollow"}}>
               {emojiText}
             </Linkify>
-            {this.maybeRenderUrl()}
           </Comment.Text>
         </Comment.Content>
       </Comment>

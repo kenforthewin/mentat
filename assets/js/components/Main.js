@@ -17,6 +17,7 @@ import { signUp, signIn } from '../actions/userActions'
 import { generateKeypair, importKey } from '../actions/cryptoActions'
 import Nav from './Nav'
 import ExportKey from './ExportKey'
+import HomepageLayout from './HomepageLayout';
 
 let openpgp =  require('openpgp');
 
@@ -124,7 +125,7 @@ class Main extends Component {
   maybeRenderNav() {
     if (!this.navApp()) {
       return (
-        <Nav loggedIn={this.loggedIn} navApp={false} burnBrowser={this.props.burnBrowser} />
+        <Nav loggedIn={this.loggedIn} navApp={false} burnBrowser={this.props.burnBrowser} groups={this.props.cryptoReducer.groups} />
       )
     }
   }
@@ -180,6 +181,10 @@ class Main extends Component {
             exact
             path="/"
             component={Home} />
+          <Route
+            exact
+            path="/home"
+            component={HomepageLayout} />
           <Route
             exact
             path="/t/:room"

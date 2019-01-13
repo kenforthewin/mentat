@@ -12,10 +12,22 @@ export default class Nav extends Component {
     this.renderOnlineUsersDropdown = this.renderOnlineUsersDropdown.bind(this)
     this.renderTagsDropdown = this.renderTagsDropdown.bind(this)
     this.renderMainMenuDropdown = this.renderMainMenuDropdown.bind(this)
+    this.renderGroups = this.renderGroups.bind(this)
 
     this.state = {
       showModal: false
     }
+  }
+
+  renderGroups() {
+    const items = Object.keys(this.props.groups).map((t) => <Dropdown.Item text={this.props.groups[t].nickname} key={t} as={Link} to={`/t/${t}`} />)
+    return (
+      <Dropdown text='Groups'>
+        <Dropdown.Menu>
+          {items}
+        </Dropdown.Menu>
+      </Dropdown>
+    )
   }
 
   renderLoggedInNav() {
@@ -109,6 +121,9 @@ export default class Nav extends Component {
         {this.renderOnlineUsersDropdown()}
         {this.renderTagsDropdown()}
         <Menu.Menu position='right'>
+          <Menu.Item>
+            {this.renderGroups()}
+          </Menu.Item>
           {this.renderMainMenuDropdown()}
           {this.renderLoggedInNav()}
         </Menu.Menu>

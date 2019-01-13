@@ -6,7 +6,8 @@ class ChatSegment extends Component {
   constructor(props) {
     super(props)
     this.segmentStyles = {
-      overflowY: 'scroll',  
+      overflowY: 'scroll',
+      overflowX: 'hidden',
       WebkitOverflowScrolling: 'touch',
       height: '100%'
     }
@@ -15,17 +16,17 @@ class ChatSegment extends Component {
     this.scrollDown = this.scrollDown.bind(this);
     this.maybeScrollDown = this.maybeScrollDown.bind(this);
     this.scrolledDown = true;
-    this.initialLoad = true;
+    this.initialLoad = true
+  }
+
+  getSnapshotBeforeUpdate(prevProps, prevState) {
+    return { scrollHeight: this.chatSegment.scrollHeight };
   }
 
   componentDidMount() {
     setTimeout(() => {
       this.initialLoad = false;
     }, 5000)
-  }
-
-  getSnapshotBeforeUpdate(prevProps, prevState) {
-    return { scrollHeight: this.chatSegment.scrollHeight };
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {

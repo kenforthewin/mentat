@@ -255,13 +255,12 @@ class App extends Component {
       if (this.props.messageReducer.messages[payload.id]) {
         this.props.removeTag(payload.id, payload.tag);
         if (this.state.messageIds.includes(payload.id)) {
-          const tags = this.state.tagOptions;
           const newMessageTags = currentMessage.tags.filter((e) => e !== payload.tag)
           let postMessage = false;
           newMessageTags.forEach((t) => {
             postMessage = postMessage || this.state.tags.includes(t);
           });
-          if (!postMessage && !newMessageTags.length === 0) {
+          if (!postMessage && this.state.tags.length !== 0) {
             this.setState({
               ...this.state,
               messageIds: this.state.messageIds.filter((e) => e !== payload.id)
@@ -276,7 +275,6 @@ class App extends Component {
     });
 
     this.channel.on("new_url_data", payload => {
-      console.log(payload)
       this.props.newUrl(payload.id, payload.url_data, payload.tag);
     });
 
@@ -740,7 +738,7 @@ class App extends Component {
     }
     return (
       <div style={{height: '100%', overflow: 'hidden'}}>
-        <Nav loggedIn={() => true} navApp={true} presences={this.state.presences} requests={this.state.requests} approveRequest={this.approveRequest} dismissRequest={this.dismissRequest} tags={this.state.tags} tagCounts={this.state.tagCounts} dropdownOptions={this.dropdownOptions} updateTags={this.updateTags} changeName={() => this.setState({...this.state, modalOpen: true})} burnBrowser={this.props.burnBrowser} updateRoomSettings={this.updateRoomSettings} generateUrls={this.props.userReducer.urlPreviews} currentName={this.props.cryptoReducer.groups[this.room] ? this.props.cryptoReducer.groups[this.room].nickname : ''} roomUuid={this.room} />
+        <Nav loggedIn={() => true} navApp={true} presences={this.state.presences} requests={this.state.requests} approveRequest={this.approveRequest} dismissRequest={this.dismissRequest} tags={this.state.tags} tagCounts={this.state.tagCounts} dropdownOptions={this.dropdownOptions} updateTags={this.updateTags} changeName={() => this.setState({...this.state, modalOpen: true})} burnBrowser={this.props.burnBrowser} updateRoomSettings={this.updateRoomSettings} generateUrls={this.props.userReducer.urlPreviews} currentName={this.props.cryptoReducer.groups[this.room] ? this.props.cryptoReducer.groups[this.room].nickname : ''} roomUuid={this.room} groups={this.props.cryptoReducer.groups} />
         <Container style={{height: '100%'}}>
         <div style={this.mainStyles} >
         <UserModal
