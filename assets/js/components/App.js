@@ -276,12 +276,17 @@ class App extends Component {
 
     this.channel.on("new_url_data", payload => {
       this.props.newUrl(payload.id, payload.url_data, payload.tag);
+      const tags = this.state.tagOptions
+      this.setState({
+        tagOptions: tags.includes(payload.tag) ? tags : tags.concat([payload.tag])
+      })
     });
 
     this.channel.on("new_message_tag", payload => {
       if (this.props.messageReducer.messages[payload.id]) {
         this.props.newTag(payload.id, payload.new_tag);
       }
+
       this.receiveMessage(payload)
     })
 
