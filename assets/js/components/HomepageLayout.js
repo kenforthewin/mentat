@@ -232,6 +232,8 @@ const HomepageLayout = () => (
               </List>
             </Grid.Column> */}
             <Grid.Column width={7}>
+              <a href="https://github.com/kenforthewin/mentat">
+              <Image src='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png' size='tiny' /></a>
               {/* <Header as='h4' inverted>
                 Footer Header
               </Header>
