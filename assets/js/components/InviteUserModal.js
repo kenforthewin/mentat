@@ -5,7 +5,7 @@ class InviteUserModal extends Component {
   constructor(props) {
     super(props);
     this.qr = React.createRef();
-    this.qrUrl = "https://groupchat.kenforthewin.com/t/" + this.props.qrInput;
+    this.qrUrl = "https://metachat.app/t/" + this.props.qrInput;
   }
 
   componentDidMount() {

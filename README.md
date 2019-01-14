@@ -6,7 +6,7 @@ Mentat is a group chat application with a focus on message tagging and privacy. 
 
 See it in action here:
 
-https://groupchat.kenforthewin.com
+https://metachat.app
 
 ## Features
 

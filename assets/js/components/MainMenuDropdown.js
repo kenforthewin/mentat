@@ -18,7 +18,7 @@ export default class MainMenuDropdown extends Component {
       showQrModal: false
     }
 
-    this.roomUrl = 'https://groupchat.kenforthewin.com/t/' + this.props.roomUuid;
+    this.roomUrl = 'https://metachat.app.com/t/' + this.props.roomUuid;
   }
 
   updateRoom() {

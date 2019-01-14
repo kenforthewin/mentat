@@ -22,7 +22,7 @@ export default class Nav extends Component {
   renderGroups() {
     const items = Object.keys(this.props.groups).map((t) => <Dropdown.Item text={this.props.groups[t].nickname} key={t} as={Link} to={`/t/${t}`} />)
     return (
-      <Dropdown text='Groups'>
+      <Dropdown>
         <Dropdown.Menu>
           {items}
         </Dropdown.Menu>
@@ -121,9 +121,9 @@ export default class Nav extends Component {
         {this.renderOnlineUsersDropdown()}
         {this.renderTagsDropdown()}
         <Menu.Menu position='right'>
-          <Menu.Item>
+          {/* <Menu.Item>
             {this.renderGroups()}
-          </Menu.Item>
+          </Menu.Item> */}
           {this.renderMainMenuDropdown()}
           {this.renderLoggedInNav()}
         </Menu.Menu>
