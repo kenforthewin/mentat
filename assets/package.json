@@ -16,6 +16,7 @@
     }
   },
   "dependencies": {
+    "body-scroll-lock": "^2.6.1",
     "cropperjs": "^1.4.0",
     "emoji-js": "^3.4.0",
     "emoji-mart": "^2.6.1",

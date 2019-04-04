@@ -13,7 +13,7 @@ import TagsDropdown from './TagsDropdown';
 import MessageForm from './MessageForm';
 import UserModal from './UserModal';
 import {addMessage,newUrl,newTag,refreshTags,removeTag} from '../actions/messageActions';
-import {addUser, setLastSynced} from '../actions/usersAction';
+import {addUser, setLastSynced, expireToken} from '../actions/usersAction';
 import { generateKeypair, generateGroupKeypair, receiveGroupKeypair, burnBrowser, newGroupName } from '../actions/cryptoActions';
 import {persistor} from '../reducers/index';
 import Nav from './Nav';
@@ -124,7 +124,7 @@ class App extends Component {
   }
 
   async componentDidMount() {
-    if (!this.props.userReducer.token) {
+    if (!this.props.cryptoReducer.publicKey) {
       this.props.burnBrowser()
     } else {
       this.setupNotifications();
@@ -802,7 +802,8 @@ const mapDispatchToProps = (dispatch) => {
     generateGroupKeypair: (room, name) => dispatch(generateGroupKeypair(room, name)),
     receiveGroupKeypair: (room, publicKey, encryptedPrivateKey, users = [], name = '') => dispatch(receiveGroupKeypair(room, publicKey, encryptedPrivateKey, users, name)),
     updateUrlPreviews: (urlPreviews) => dispatch(updateUrlPreviews(urlPreviews)),
-    newGroupName: (room, nickname) => dispatch(newGroupName(room, nickname))
+    newGroupName: (room, nickname) => dispatch(newGroupName(room, nickname)),
+    expireToken: () => dispatch(expireToken())
   }
 }
 export default connect(mapStateToProps, mapDispatchToProps)(App);

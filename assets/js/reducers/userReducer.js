@@ -14,6 +14,11 @@ export default (state = INITIAL_STATE, action) => {
         ...state,
         authErrors: {}
       }
+    case 'expire_token':
+      return {
+        ...state,
+        token: null
+      }
     case 'set_name':
       return {
         ...state,

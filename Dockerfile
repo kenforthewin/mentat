@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -qq -y nodejs  tar --fix-missing --no-inst
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
-    RUST_VERSION=1.26.0
+    RUST_VERSION=1.33.0
 RUN set -eux; \
     \
     dpkgArch="$(dpkg --print-architecture)"; \

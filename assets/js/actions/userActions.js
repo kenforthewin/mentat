@@ -45,6 +45,12 @@ export const signIn = (email, password) => {
   }
 }
 
+export const expireToken = () => {
+  return {
+    type: 'expire_token'
+  }
+}
+
 export const signUp = (email, password) => {
   return (dispatch, getState) => {
     const state = getState()

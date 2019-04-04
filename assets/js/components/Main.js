@@ -13,7 +13,7 @@ import { Socket, Presence } from "phoenix"
 import { approveRequest, burnBrowser, receiveGroupKeypair } from '../actions/cryptoActions'
 import {persistor} from '../reducers/index';
 import SignUp from './SignUp'
-import { signUp, signIn } from '../actions/userActions'
+import { signUp, signIn, expireToken } from '../actions/userActions'
 import { generateKeypair, importKey } from '../actions/cryptoActions'
 import Nav from './Nav'
 import ExportKey from './ExportKey'
@@ -41,12 +41,8 @@ class Main extends Component {
   componentDidMount() {
     if (this.props.userReducer.token) {
       this.joinUserChannel();
-    } else {
-      this.props.burnBrowser();
     }
   }
-
-
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (this.props.userReducer.token && !prevProps.userReducer.token) {
@@ -56,6 +52,10 @@ class Main extends Component {
 
   joinUserChannel() {
     let socket = new Socket("/socket", {params: {token: this.props.userReducer.token}});
+    socket.onError(() => {
+      this.props.expireToken()
+      window.location = '/sign-in'
+    })
     socket.connect();
     this.channel = socket.channel(`user:${this.props.userReducer.uuid}`, {publicKey: this.props.cryptoReducer.publicKey});
     this.channel.on("approve_user_request", payload => {
@@ -222,7 +222,8 @@ const mapDispatchToProps = (dispatch) => {
     signIn: (email, password) => dispatch(signIn(email, password)),
     signUp: (email, password) => dispatch(signUp(email, password)),
     generateKeypair: () => dispatch(generateKeypair()),
-    receiveGroupKeypair: (room, publicKey, encryptedPrivateKey, users = [], name = '') => dispatch(receiveGroupKeypair(room, publicKey, encryptedPrivateKey, users, name))
+    receiveGroupKeypair: (room, publicKey, encryptedPrivateKey, users = [], name = '') => dispatch(receiveGroupKeypair(room, publicKey, encryptedPrivateKey, users, name)),
+    expireToken: () => dispatch(expireToken())
   }
 }
 
